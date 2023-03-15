@@ -14,6 +14,7 @@ def init():
     global DEBUG_FONT_COLOR
     global PLAYER_W
     global PLAYER_H
+    global SCREEN_CAPTION
     
     SCREEN_W = 800
     SCREEN_H = 600
@@ -27,6 +28,7 @@ def init():
     DEBUG_FONT_COLOR = pygame.Color("Coral")
     PLAYER_W = 32
     PLAYER_H = 32
+    SCREEN_CAPTION = "Loderunner"
 
 class PressedKeys(IntEnum):
         LEFT = 0,

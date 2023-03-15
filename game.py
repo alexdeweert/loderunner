@@ -4,19 +4,16 @@ from enum import IntEnum
 
 class Game():
     def __init__(self) -> None:
-        pygame.display.set_caption("Hello World")
-
-        self.screen = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
-        self.clock = pygame.time.Clock()
+        self.display = pygame.display
         self.time = pygame.time
-        self.keysPressed = [False,False,False,False]
+        self.clock = self.time.Clock()
         self.player = player.Player()
-        
-
+        self.display.set_caption(globals.SCREEN_CAPTION)
+        self.screen = self.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
+        self.keysPressed = [False,False,False,False]
 
     def renderFpsText(self):
         fpsString = str(int(self.clock.get_fps()))
-        # render(text, antialias, color, background)
         renderedFpsText = globals.DEBUG_FONT.render(fpsString, True, globals.DEBUG_FONT_COLOR)
         return renderedFpsText
 
@@ -61,7 +58,7 @@ class Game():
         # Draw to the canvas
         self.screen.blit(self.renderFpsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y))
         self.player.drawPlayer(self.screen)
-        pygame.display.flip()
+        self.display.flip()
         
     def run(self):
         while True:
