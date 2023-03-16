@@ -27,7 +27,7 @@ class Game():
     # Update game logic based on inputs
     def update(self, delta):
         self.player.updatePlayerPosition(delta, globals.H_SPEED, globals.V_SPEED)
-        self.tile.didCollide(self.player.rect)
+        self.player.resolveCollisionWith(self.tile.didCollide(self.player.rect))
 
     # Render drawable objects
     def render(self):
