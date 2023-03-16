@@ -1,4 +1,4 @@
-import pygame, sys, player
+import pygame, sys, player, collidable
 import constants.globals as globals
 import constants.colors as colors
 from pygame.locals import *
@@ -8,8 +8,9 @@ class Game():
     def __init__(self) -> None:
         self.clock = pygame.time.Clock()
         self.player = player.Player()
+        self.tile = collidable.Collidable(100,100,32,32)
         pygame.display.set_caption(globals.SCREEN_CAPTION)
-        self.screen = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
+        self.surface = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
 
     def renderFpsText(self):
         fpsString = str(int(self.clock.get_fps()))
@@ -26,15 +27,16 @@ class Game():
     # Update game logic based on inputs
     def update(self, delta):
         self.player.updatePlayerPosition(delta, globals.H_SPEED, globals.V_SPEED)
+        self.tile.didCollide(self.player.rect)
 
     # Render drawable objects
     def render(self):
         # On each loop fill the entire canvas with one color
-        self.screen.fill(colors.BLACK)
+        self.surface.fill(colors.BLACK)
+        self.surface.blit(self.renderFpsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y))
+        self.player.drawPlayer(self.surface)
+        self.tile.draw(self.surface)
 
-        # Draw to the canvas
-        self.screen.blit(self.renderFpsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y))
-        self.player.drawPlayer(self.screen)
         pygame.display.flip()
         
     def run(self):

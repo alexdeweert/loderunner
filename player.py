@@ -14,7 +14,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.playerKeysPressed = [False,False,False,False]
         
-    def drawPlayer(self, screen):
+    def drawPlayer(self, screen: pygame.Surface):
         pygame.draw.rect(screen, colors.RED,  self.rect)
 
     def updatePlayerPosition(self,delta,hSpeed,vSpeed):
