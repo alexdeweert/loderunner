@@ -15,6 +15,9 @@ def init():
     global PLAYER_W
     global PLAYER_H
     global SCREEN_CAPTION
+    global ZERO
+    global ONE
+    global SECOND_MS
     
     SCREEN_W = 800
     SCREEN_H = 600
@@ -29,6 +32,9 @@ def init():
     PLAYER_W = 32
     PLAYER_H = 32
     SCREEN_CAPTION = "Loderunner"
+    ZERO = 0
+    ONE = 1
+    SECOND_MS = 1000
 
 class PressedKeys(IntEnum):
         LEFT = 0,
