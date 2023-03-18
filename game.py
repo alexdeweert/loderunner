@@ -29,8 +29,6 @@ class Game():
         print(f"didMoveUp {self.player.didMoveUp()}, didMoveDown: {self.player.didMoveDown()}, didMoveLeft: {self.player.didMoveLeft()}, didMoveRight: {self.player.didMoveRight()}")
         self.player.updatePlayerPosition(delta, globals.H_SPEED, globals.V_SPEED)
         self.player.setDidMove()
-
-
         if self.player.didMoveRight():
             self.player.resolvePositiveXCollision(self.tile.didCollide(self.player.rect))
         if self.player.didMoveLeft():
@@ -39,8 +37,6 @@ class Game():
             self.player.resolvePositiveYCollision(self.tile.didCollide(self.player.rect))
         if self.player.didMoveUp():
             self.player.resolveNegativeYCollision(self.tile.didCollide(self.player.rect))
-        
-        
         self.player.storePreviousPosition()
         
             

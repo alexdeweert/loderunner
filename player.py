@@ -37,7 +37,6 @@ class Player(pygame.sprite.Sprite):
         self.prevY = self.rect.y
 
     def setDidMove(self):
-        print(f"change in x: {self.rect.x - self.prevX}")
         self.xChangedPositive = self.rect.x > self.prevX
         self.xChangedNegative = self.rect.x < self.prevX
         self.yChangedPositive = self.rect.y > self.prevY
@@ -88,13 +87,11 @@ class Player(pygame.sprite.Sprite):
     def resolvePositiveYCollision(self, withRect: pygame.Rect):
         if(withRect is not None):
             yDepth = self.getPositiveYDepth(withRect)
-            print(f"yDepth: {yDepth}")
             self.rect.y = self.rect.y - yDepth
     
     def resolveNegativeYCollision(self, withRect: pygame.Rect):
         if(withRect is not None):
             yDepth = self.getNegativeYDepth(withRect)
-            print(f"yDepth: {yDepth}")
             self.rect.y = self.rect.y - yDepth
     
     # Need to return the DIFFERENCE in the right and left rect borders.
