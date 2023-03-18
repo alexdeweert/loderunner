@@ -18,19 +18,21 @@ def init():
     global ZERO
     global ONE
     global SECOND_MS
-    
+    global SIMULATED_LAG_MS
+
     SCREEN_W = 800
     SCREEN_H = 600
-    H_SPEED = 1
-    V_SPEED = 1
-    FPS = 30
+    H_SPEED = 500
+    V_SPEED = 500
+    SIMULATED_LAG_MS = 0
+    FPS = 60
     MAX_DELTA = 1/FPS
     FPS_DISP_X = SCREEN_W-25
     FPS_DISP_Y = 0
     DEBUG_FONT = pygame.font.SysFont("Arial", 18)
     DEBUG_FONT_COLOR = pygame.Color("Coral")
-    PLAYER_W = 32
-    PLAYER_H = 32
+    PLAYER_W = 64
+    PLAYER_H = 64
     SCREEN_CAPTION = "Loderunner"
     ZERO = 0
     ONE = 1

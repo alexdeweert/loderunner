@@ -2,6 +2,7 @@ import pygame
 import sys
 import constants.globals as globals
 import constants.colors as colors
+import collidable
 from pygame.locals import *
 from typing import Optional
 
@@ -24,16 +25,41 @@ class Player(pygame.sprite.Sprite):
     def drawPlayer(self, screen: pygame.Surface):
         pygame.draw.rect(screen, colors.RED,  self.rect)
 
-    def updatePlayerPosition(self,delta,hSpeed,vSpeed):
-        resolvedHSpeed = delta * hSpeed
-        resolvedVSpeed = delta * vSpeed
-        # We might have to hack this and prevent diagonal movements when calculating vertical position.
-        # I don't like that - because then this code isn't re-usable :\
-        if(self.playerKeysPressed[globals.PressedKeys.LEFT]): self.rect.move_ip(-resolvedHSpeed, globals.ZERO)
-        if(self.playerKeysPressed[globals.PressedKeys.RIGHT]): self.rect.move_ip(resolvedHSpeed, globals.ZERO)
-        if(self.playerKeysPressed[globals.PressedKeys.UP]): self.rect.move_ip(globals.ZERO, -resolvedVSpeed)
-        if(self.playerKeysPressed[globals.PressedKeys.DOWN]): self.rect.move_ip(globals.ZERO, resolvedVSpeed)
+    #TODO: Maybe make a Vector2 class (with an x and magnitude)
+    def updatePlayerPosition(self, delta, hSpeed, vSpeed, withCollidable: collidable.Collidable):
+        deltaH = delta * hSpeed
+        deltaV = delta * vSpeed
+        self.storePreviousPosition()
+        if(self.playerKeysPressed[globals.PressedKeys.LEFT]): self.handleMove(-deltaH, globals.ZERO, withCollidable)
+        if(self.playerKeysPressed[globals.PressedKeys.RIGHT]): self.handleMove(deltaH, globals.ZERO, withCollidable)
+        if(self.playerKeysPressed[globals.PressedKeys.UP]): self.handleMove(globals.ZERO, -deltaV, withCollidable)
+        if(self.playerKeysPressed[globals.PressedKeys.DOWN]): self.handleMove(globals.ZERO, deltaV, withCollidable)
+        self.setDidMove()
+
+    def handleMove(self, deltaH: float, deltaV: float, withCollidable: collidable.Collidable):
+        '''
+        The problem with this is that it does not solve tunnelling.
+        That is, if the speed is fast enough, or if there's a large 
+        delta due to game lag (luckily we cap that value) then willCollide
+        will never return true and the movement will pass straight through.
+        '''
+        if not withCollidable.willCollide(self.rect, deltaH, deltaV):
+            self.rect.move_ip(deltaH, deltaV)
+        # Will collide so we don't allow movement, but we resolve it down to 1 pixel
+        else:
+            if deltaH > 0: self.resolveXGap(withCollidable, withCollidable.rect.left - self.rect.right, deltaV, 1)
+            if deltaH < 0: self.resolveXGap(withCollidable, self.rect.left - withCollidable.rect.right, deltaV, -1)
+            if deltaV > 0: self.resolveYGap(withCollidable, withCollidable.rect.top - self.rect.bottom, deltaH, 1)
+            if deltaV < 0: self.resolveYGap(withCollidable, self.rect.top - withCollidable.rect.bottom, deltaH, -1)
     
+    def resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
+        x = distance - 1
+        if(x > 0): self.rect.move_ip(dir*x, deltaV)
+
+    def resolveYGap(self, withCollidable: collidable.Collidable, distance: float, deltaH: float, dir: int):
+        y = distance - 1
+        if(y > 0): self.rect.move_ip(deltaH, dir*y)
+
     def storePreviousPosition(self):
         self.prevX = self.rect.x
         self.prevY = self.rect.y
@@ -75,40 +101,3 @@ class Player(pygame.sprite.Sprite):
         elif event.type == QUIT:
             pygame.quit()
             sys.exit()
-
-    def resolvePositiveXCollision(self, withRect: pygame.Rect):
-        if(withRect is not None):
-            xDepth = self.getPositiveXDepth(withRect)
-            self.rect.x = self.rect.x - xDepth
-
-    def resolveNegativeXCollision(self, withRect: pygame.Rect):
-        if(withRect is not None):
-            xDepth = self.getNegativeXDepth(withRect)
-            self.rect.x = self.rect.x - xDepth
-
-    def resolvePositiveYCollision(self, withRect: pygame.Rect):
-        if(withRect is not None):
-            yDepth = self.getPositiveYDepth(withRect)
-            self.rect.y = self.rect.y - yDepth
-    
-    def resolveNegativeYCollision(self, withRect: pygame.Rect):
-        if(withRect is not None):
-            yDepth = self.getNegativeYDepth(withRect)
-            self.rect.y = self.rect.y - yDepth
-    
-    # Need to return the DIFFERENCE in the right and left rect borders.
-    def getPositiveXDepth(self, rect: pygame.Rect) -> int :
-        return self.rect.right - rect.left + 1
-    
-    # Need to return the DIFFERENCE in the right and left rect borders.
-    def getNegativeXDepth(self, rect: pygame.Rect) -> int :
-        return self.rect.left - rect.right - 1
-        
-
-     # Need to return the DIFFERENCE in the right and left rect borders.
-    def getPositiveYDepth(self, rect: pygame.Rect) -> int :
-        return self.rect.bottom - rect.top + 1
-    
-    # Need to return the DIFFERENCE in the right and left rect borders.
-    def getNegativeYDepth(self, rect: pygame.Rect) -> int :
-        return self.rect.top - rect.bottom - 1
