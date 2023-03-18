@@ -75,37 +75,41 @@ class Player(pygame.sprite.Sprite):
             pygame.quit()
             sys.exit()
 
-    # If its not none we collided with it
-    def resolveXCollisionWith(self, rect: pygame.Rect):
-        # We know a collision occured - so resolve the players position
-        if(rect is not None):
-            xDepth = self.getXDepth(rect)
-            print(f"xDepth: {xDepth}")
-            self.rect.x = self.rect.x - (xDepth+1)
+    def resolvePositiveXCollision(self, withRect: pygame.Rect):
+        if(withRect is not None):
+            xDepth = self.getPositiveXDepth(withRect)
+            self.rect.x = self.rect.x - xDepth
 
-    # If its not none we collided with it
-    def resolveYCollisionWith(self, rect: pygame.Rect):
-        # We know a collision occured - so resolve the players position
-        if(rect is not None):
-            yDepth = self.getYDepth(rect)
+    def resolveNegativeXCollision(self, withRect: pygame.Rect):
+        if(withRect is not None):
+            xDepth = self.getNegativeXDepth(withRect)
+            self.rect.x = self.rect.x - xDepth
+
+    def resolvePositiveYCollision(self, withRect: pygame.Rect):
+        if(withRect is not None):
+            yDepth = self.getPositiveYDepth(withRect)
             print(f"yDepth: {yDepth}")
-            self.rect.y = self.rect.y - (yDepth)
+            self.rect.y = self.rect.y - yDepth
+    
+    def resolveNegativeYCollision(self, withRect: pygame.Rect):
+        if(withRect is not None):
+            yDepth = self.getNegativeYDepth(withRect)
+            print(f"yDepth: {yDepth}")
+            self.rect.y = self.rect.y - yDepth
     
     # Need to return the DIFFERENCE in the right and left rect borders.
-    def getXDepth(self, rect: pygame.Rect) -> int :
-        if(self.rect.left < rect.left and self.rect.right > rect.left):
-            return self.rect.right - rect.left
+    def getPositiveXDepth(self, rect: pygame.Rect) -> int :
+        return self.rect.right - rect.left + 1
+    
+    # Need to return the DIFFERENCE in the right and left rect borders.
+    def getNegativeXDepth(self, rect: pygame.Rect) -> int :
+        return self.rect.left - rect.right - 1
         
-        if(self.rect.right > rect.right and self.rect.left < rect.right):
-            return self.rect.left - rect.right
-        
-        return 0
-        
-    def getYDepth(self, rect: pygame.Rect) -> int :
-        if(self.rect.top < rect.top and self.rect.bottom > rect.top):
-            return self.rect.bottom - rect.top
-        
-        if(self.rect.bottom > rect.bottom and self.rect.top < rect.bottom):
-            return self.rect.top - rect.bottom
-        
-        return 0
+
+     # Need to return the DIFFERENCE in the right and left rect borders.
+    def getPositiveYDepth(self, rect: pygame.Rect) -> int :
+        return self.rect.bottom - rect.top + 1
+    
+    # Need to return the DIFFERENCE in the right and left rect borders.
+    def getNegativeYDepth(self, rect: pygame.Rect) -> int :
+        return self.rect.top - rect.bottom - 1

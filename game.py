@@ -31,11 +31,14 @@ class Game():
         self.player.setDidMove()
 
 
-        if(self.player.didMoveLeft() or self.player.didMoveRight()):
-            self.player.resolveXCollisionWith(self.tile.didCollide(self.player.rect))
-
-        if(self.player.didMoveUp() or self.player.didMoveDown()):
-            self.player.resolveYCollisionWith(self.tile.didCollide(self.player.rect))
+        if self.player.didMoveRight():
+            self.player.resolvePositiveXCollision(self.tile.didCollide(self.player.rect))
+        if self.player.didMoveLeft():
+            self.player.resolveNegativeXCollision(self.tile.didCollide(self.player.rect))
+        if self.player.didMoveDown():
+            self.player.resolvePositiveYCollision(self.tile.didCollide(self.player.rect))
+        if self.player.didMoveUp():
+            self.player.resolveNegativeYCollision(self.tile.didCollide(self.player.rect))
         
         
         self.player.storePreviousPosition()
