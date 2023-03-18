@@ -8,7 +8,7 @@ class Game():
     def __init__(self) -> None:
         self.clock = pygame.time.Clock()
         self.player = player.Player()
-        self.tile = collidable.Collidable(100,100,32,32)
+        self.tile = collidable.Collidable(40,40,32,32)
         pygame.display.set_caption(globals.SCREEN_CAPTION)
         self.surface = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
 
@@ -26,8 +26,21 @@ class Game():
 
     # Update game logic based on inputs
     def update(self, delta):
+        print(f"didMoveUp {self.player.didMoveUp()}, didMoveDown: {self.player.didMoveDown()}, didMoveLeft: {self.player.didMoveLeft()}, didMoveRight: {self.player.didMoveRight()}")
         self.player.updatePlayerPosition(delta, globals.H_SPEED, globals.V_SPEED)
-        self.player.resolveCollisionWith(self.tile.didCollide(self.player.rect))
+        self.player.setDidMove()
+
+
+        if(self.player.didMoveLeft() or self.player.didMoveRight()):
+            self.player.resolveXCollisionWith(self.tile.didCollide(self.player.rect))
+
+        if(self.player.didMoveUp() or self.player.didMoveDown()):
+            self.player.resolveYCollisionWith(self.tile.didCollide(self.player.rect))
+        
+        
+        self.player.storePreviousPosition()
+        
+            
 
     # Render drawable objects
     def render(self):
@@ -42,7 +55,7 @@ class Game():
     def run(self):
         while True:
             delta = self.clock.tick(globals.FPS) / globals.SECOND_MS
-            
+            #pygame.time.delay(50)
             # Limit the delta, in case of huge amounts of lag
             if(delta > globals.MAX_DELTA):
                 delta = globals.MAX_DELTA
@@ -50,7 +63,7 @@ class Game():
             # Process Input
             self.processInput()
             # Update
-            self.update(delta)
+            self.update(1)
             # Render
             self.render()
 

@@ -14,6 +14,12 @@ class Player(pygame.sprite.Sprite):
         self.image.fill(colors.RED)
         self.rect = self.image.get_rect()
         self.playerKeysPressed = [False,False,False,False]
+        self.prevX = self.rect.x
+        self.prevY = self.rect.y
+        self.xChangedPositive = False
+        self.xChangedNegative = False
+        self.yChangedPositive = False
+        self.yChangedNegative = False
         
     def drawPlayer(self, screen: pygame.Surface):
         pygame.draw.rect(screen, colors.RED,  self.rect)
@@ -25,6 +31,27 @@ class Player(pygame.sprite.Sprite):
         if(self.playerKeysPressed[globals.PressedKeys.RIGHT]): self.rect.move_ip(resolvedHSpeed, globals.ZERO)
         if(self.playerKeysPressed[globals.PressedKeys.UP]): self.rect.move_ip(globals.ZERO, -resolvedVSpeed)
         if(self.playerKeysPressed[globals.PressedKeys.DOWN]): self.rect.move_ip(globals.ZERO, resolvedVSpeed)
+    
+    def storePreviousPosition(self):
+        self.prevX = self.rect.x
+        self.prevY = self.rect.y
+
+    def setDidMove(self):
+        print(f"change in x: {self.rect.x - self.prevX}")
+        self.xChangedPositive = self.rect.x > self.prevX
+        self.xChangedNegative = self.rect.x < self.prevX
+        self.yChangedPositive = self.rect.y > self.prevY
+        self.yChangedNegative = self.rect.y < self.prevY
+
+    # This seems to work (at least when we're not using delta to scale movements, need to verify)
+    def didMoveUp(self):
+        return self.yChangedNegative
+    def didMoveDown(self):
+        return self.yChangedPositive
+    def didMoveLeft(self):
+        return self.xChangedNegative
+    def didMoveRight(self):
+        return self.xChangedPositive
 
     def processMovementWithKeyEventTypes(self, event, eventType):
         if event.type == eventType:
@@ -49,31 +76,36 @@ class Player(pygame.sprite.Sprite):
             sys.exit()
 
     # If its not none we collided with it
-    def resolveCollisionWith(self, rect: pygame.Rect) -> Optional[pygame.Rect]:
-        """
-        TODO: How can we resolve this?
-        Yes, we know a collision occured - but we can't set the player's x or y unless we know
-        where to restrict it. But we CAN test again, if its not left of, not right of, etc - and whichever
-        of those fails we can update the x or y depending - its possible that two conditions can be false
-        at the same time, so we need to resolve all the collisions.
-        """
+    def resolveXCollisionWith(self, rect: pygame.Rect):
         # We know a collision occured - so resolve the players position
         if(rect is not None):
-            # If player not right of, then its inside of the rect
-            isLeftOf = self.rect.right < rect.left
-            isRightOf = self.rect.left > rect.right
-            isBelow = self.rect.top > rect.bottom
-            isAbove = self.rect.bottom < rect.top
+            xDepth = self.getXDepth(rect)
+            print(f"xDepth: {xDepth}")
+            self.rect.x = self.rect.x - (xDepth+1)
 
-            if(not isLeftOf and self.rect.left < rect.left):
-                self.rect.right = rect.left
-            if(not isRightOf and self.rect.right > rect.right):
-                self.rect.left = rect.right
-
-            # TODO: Above works without below - need to figure this out
-            # Might be a good idea to draw it out.
-            
-            # if(not isBelow and self.rect.bottom > rect.bottom):
-            #     self.rect.top = rect.bottom
-            # if(not isAbove and self.rect.top < rect.top):
-            #     self.rect.bottom = rect.top
+    # If its not none we collided with it
+    def resolveYCollisionWith(self, rect: pygame.Rect):
+        # We know a collision occured - so resolve the players position
+        if(rect is not None):
+            yDepth = self.getYDepth(rect)
+            print(f"yDepth: {yDepth}")
+            self.rect.y = self.rect.y - (yDepth)
+    
+    # Need to return the DIFFERENCE in the right and left rect borders.
+    def getXDepth(self, rect: pygame.Rect) -> int :
+        if(self.rect.left < rect.left and self.rect.right > rect.left):
+            return self.rect.right - rect.left
+        
+        if(self.rect.right > rect.right and self.rect.left < rect.right):
+            return self.rect.left - rect.right
+        
+        return 0
+        
+    def getYDepth(self, rect: pygame.Rect) -> int :
+        if(self.rect.top < rect.top and self.rect.bottom > rect.top):
+            return self.rect.bottom - rect.top
+        
+        if(self.rect.bottom > rect.bottom and self.rect.top < rect.bottom):
+            return self.rect.top - rect.bottom
+        
+        return 0
