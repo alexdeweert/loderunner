@@ -5,6 +5,7 @@ import constants.colors as colors
 import collidable
 from pygame.locals import *
 from typing import Optional
+from typing import List
 
 class Player(pygame.sprite.Sprite):
     def __init__(self) -> None:
@@ -26,31 +27,29 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(screen, colors.RED,  self.rect)
 
     #TODO: Maybe make a Vector2 class (with an x and magnitude)
-    def updatePlayerPosition(self, delta, hSpeed, vSpeed, withCollidable: collidable.Collidable):
+    def updatePlayerPosition(self, delta, hSpeed, vSpeed, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable]):
         deltaH = delta * hSpeed
         deltaV = delta * vSpeed
         self.storePreviousPosition()
-        if(self.playerKeysPressed[globals.PressedKeys.LEFT]): self.handleMove(-deltaH, globals.ZERO, withCollidable)
-        if(self.playerKeysPressed[globals.PressedKeys.RIGHT]): self.handleMove(deltaH, globals.ZERO, withCollidable)
-        if(self.playerKeysPressed[globals.PressedKeys.UP]): self.handleMove(globals.ZERO, -deltaV, withCollidable)
-        if(self.playerKeysPressed[globals.PressedKeys.DOWN]): self.handleMove(globals.ZERO, deltaV, withCollidable)
+        if self.hasValidLeftInput(): self.handleMove(-deltaH, globals.ZERO, withSolids, withPermeables)
+        if self.hasValidRightInput(): self.handleMove(deltaH, globals.ZERO, withSolids, withPermeables)
+        if self.hasValidUpInput(): self.handleMove(globals.ZERO, -deltaV, withSolids, withPermeables)
+        if self.hasValidDownInput(): self.handleMove(globals.ZERO, deltaV, withSolids, withPermeables)
         self.setDidMove()
 
-    def handleMove(self, deltaH: float, deltaV: float, withCollidable: collidable.Collidable):
-        '''
-        The problem with this is that it does not solve tunnelling.
-        That is, if the speed is fast enough, or if there's a large 
-        delta due to game lag (luckily we cap that value) then willCollide
-        will never return true and the movement will pass straight through.
-        '''
-        if not withCollidable.willCollide(self.rect, deltaH, deltaV):
-            self.rect.move_ip(deltaH, deltaV)
-        # Will collide so we don't allow movement, but we resolve it down to 1 pixel
-        else:
-            if deltaH > 0: self.resolveXGap(withCollidable, withCollidable.rect.left - self.rect.right, deltaV, 1)
-            if deltaH < 0: self.resolveXGap(withCollidable, self.rect.left - withCollidable.rect.right, deltaV, -1)
-            if deltaV > 0: self.resolveYGap(withCollidable, withCollidable.rect.top - self.rect.bottom, deltaH, 1)
-            if deltaV < 0: self.resolveYGap(withCollidable, self.rect.top - withCollidable.rect.bottom, deltaH, -1)
+    def handleMove(self, deltaH: float, deltaV: float, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable]):
+        for solid in withSolids:
+            if not solid.willCollide(self.rect, deltaH, deltaV):
+                self.rect.move_ip(deltaH, deltaV)
+            else:
+                # Else will collide so we don't allow movement, but we resolve it down to 1 pixel
+                if deltaH > 0: self.resolveXGap(solid, solid.rect.left - self.rect.right, deltaV, 1)
+                if deltaH < 0: self.resolveXGap(solid, self.rect.left - solid.rect.right, deltaV, -1)
+                if deltaV > 0: self.resolveYGap(solid, solid.rect.top - self.rect.bottom, deltaH, 1)
+                if deltaV < 0: self.resolveYGap(solid, self.rect.top - solid.rect.bottom, deltaH, -1)
+        
+        for permeable in withPermeables:
+            permeable.didCollide(self.rect)
     
     def resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
         x = distance - 1
@@ -101,3 +100,12 @@ class Player(pygame.sprite.Sprite):
         elif event.type == QUIT:
             pygame.quit()
             sys.exit()
+
+    def hasValidLeftInput(self):
+        return self.playerKeysPressed[globals.PressedKeys.LEFT] and not self.playerKeysPressed[globals.PressedKeys.RIGHT]
+    def hasValidRightInput(self):
+        return self.playerKeysPressed[globals.PressedKeys.RIGHT] and not self.playerKeysPressed[globals.PressedKeys.LEFT]
+    def hasValidUpInput(self):
+        return self.playerKeysPressed[globals.PressedKeys.UP] and not self.playerKeysPressed[globals.PressedKeys.DOWN]
+    def hasValidDownInput(self):
+        return self.playerKeysPressed[globals.PressedKeys.DOWN] and not self.playerKeysPressed[globals.PressedKeys.UP]
