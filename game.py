@@ -25,8 +25,23 @@ class Game():
             self.player.processQuitGameConditions(event)
 
     # Update game logic based on inputs
+    '''
+    TODO:
+    At the moment there's an issue with the order that we resolve collisions.
+    Since we resolve X-axis first, the positions are updated properly. So we can push diagonally
+    into the ground going against a wall, pressing right up/down, and left up/down.
+    When we try the same thing but against the floor or ceiling, we get a JUMP resolution since,
+    on the next tick the logic shows that we DID move right (since, for a moment the block moved down and right).
+    
+    How can we solve this?
+
+    This doesnt happen right-left because, yes - in part we're solving that collision first.
+    But it pops the rectangle out first and then does nothign else?
+
+    Maybe we can check if there was a diagonal movement, and resolve both
+    '''
     def update(self, delta):
-        print(f"didMoveUp {self.player.didMoveUp()}, didMoveDown: {self.player.didMoveDown()}, didMoveLeft: {self.player.didMoveLeft()}, didMoveRight: {self.player.didMoveRight()}")
+        self.player.storePreviousPosition()
         self.player.updatePlayerPosition(delta, globals.H_SPEED, globals.V_SPEED)
         self.player.setDidMove()
         if self.player.didMoveRight():
@@ -37,7 +52,7 @@ class Game():
             self.player.resolvePositiveYCollision(self.tile.didCollide(self.player.rect))
         if self.player.didMoveUp():
             self.player.resolveNegativeYCollision(self.tile.didCollide(self.player.rect))
-        self.player.storePreviousPosition()
+        
         
             
 

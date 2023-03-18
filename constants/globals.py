@@ -23,7 +23,7 @@ def init():
     SCREEN_H = 600
     H_SPEED = 1
     V_SPEED = 1
-    FPS = 15
+    FPS = 30
     MAX_DELTA = 1/FPS
     FPS_DISP_X = SCREEN_W-25
     FPS_DISP_Y = 0

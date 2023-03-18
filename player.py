@@ -27,6 +27,8 @@ class Player(pygame.sprite.Sprite):
     def updatePlayerPosition(self,delta,hSpeed,vSpeed):
         resolvedHSpeed = delta * hSpeed
         resolvedVSpeed = delta * vSpeed
+        # We might have to hack this and prevent diagonal movements when calculating vertical position.
+        # I don't like that - because then this code isn't re-usable :\
         if(self.playerKeysPressed[globals.PressedKeys.LEFT]): self.rect.move_ip(-resolvedHSpeed, globals.ZERO)
         if(self.playerKeysPressed[globals.PressedKeys.RIGHT]): self.rect.move_ip(resolvedHSpeed, globals.ZERO)
         if(self.playerKeysPressed[globals.PressedKeys.UP]): self.rect.move_ip(globals.ZERO, -resolvedVSpeed)
