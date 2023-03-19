@@ -13,7 +13,7 @@ class Player(pygame.sprite.Sprite):
         self.width = globals.PLAYER_W
         self.height = globals.PLAYER_H
         self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(colors.RED)
+        self.image.fill((colors.RED))
         self.rect = self.image.get_rect()
         self.playerKeysPressed = [False,False,False,False]
         self.prevX = self.rect.x
@@ -22,6 +22,7 @@ class Player(pygame.sprite.Sprite):
         self.xChangedNegative = False
         self.yChangedPositive = False
         self.yChangedNegative = False
+        self.collisionsCalculated = 0
         
     def drawPlayer(self, screen: pygame.Surface):
         pygame.draw.rect(screen, colors.RED,  self.rect)
@@ -38,24 +39,29 @@ class Player(pygame.sprite.Sprite):
         self.setDidMove()
 
     def handleMove(self, deltaH: float, deltaV: float, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable]):
+        willNotCollide = True
         for solid in withSolids:
-            if not solid.willCollide(self.rect, deltaH, deltaV):
-                self.rect.move_ip(deltaH, deltaV)
-            else:
-                # Else will collide so we don't allow movement, but we resolve it down to 1 pixel
+            self.collisionsCalculated = self.collisionsCalculated + 1
+            if solid.willCollide(self.rect, deltaH, deltaV):
                 if deltaH > 0: self.resolveXGap(solid, solid.rect.left - self.rect.right, deltaV, 1)
                 if deltaH < 0: self.resolveXGap(solid, self.rect.left - solid.rect.right, deltaV, -1)
                 if deltaV > 0: self.resolveYGap(solid, solid.rect.top - self.rect.bottom, deltaH, 1)
                 if deltaV < 0: self.resolveYGap(solid, self.rect.top - solid.rect.bottom, deltaH, -1)
+                willNotCollide = False
+        if willNotCollide:
+            self.rect.move_ip(deltaH, deltaV)
         
         for permeable in withPermeables:
+            self.collisionsCalculated = self.collisionsCalculated + 1
             permeable.didCollide(self.rect)
     
     def resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
+        # Resolve gap down to one pixel
         x = distance - 1
         if(x > 0): self.rect.move_ip(dir*x, deltaV)
 
     def resolveYGap(self, withCollidable: collidable.Collidable, distance: float, deltaH: float, dir: int):
+        # Resolve gap down to one pixel
         y = distance - 1
         if(y > 0): self.rect.move_ip(deltaH, dir*y)
 

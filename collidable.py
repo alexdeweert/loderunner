@@ -5,10 +5,12 @@ import constants.colors as colors
 from typing import Optional
 
 class Collidable():
-    def __init__(self, x: int, y: int, width: int, height: int, solid: bool) -> None:
+    def __init__(self, x: int, y: int, width: int, height: int, solid: bool, color: pygame.Color, touchedColor: pygame.Color) -> None:
         self.rect: pygame.Rect = pygame.Rect(x,y,width,height)
-        self.rectColor = colors.GREEN
+        self.color = color
+        self.touchedColor = touchedColor
         self.solid = solid
+        self.touched = False
     
     # Use for detecting collisions where we allow overlapping
     def didCollide(self, withRect: pygame.Rect) -> bool:
@@ -17,7 +19,7 @@ class Collidable():
         isBelow = self.rect.top > withRect.bottom
         isAbove = self.rect.bottom < withRect.top
         didCollide = not(isLeftOf or isRightOf or isBelow or isAbove)
-        self.rectColor = colors.BLUE if didCollide else colors.GREEN
+        self.touched = didCollide
         return didCollide
     
     # Use for detecting if a proposed movement will result in a collision.
@@ -29,8 +31,8 @@ class Collidable():
         isBelow = self.rect.top > withRect.bottom+proposedY
         isAbove = self.rect.bottom < withRect.top+proposedY
         willCollide = not(isLeftOf or isRightOf or isBelow or isAbove)
-        self.rectColor = colors.BLUE if willCollide else colors.GREEN
+        self.touched = willCollide
         return willCollide
     
     def draw(self, screen: pygame.Surface) -> None:
-        pygame.draw.rect(screen, self.rectColor,  self.rect)
+        pygame.draw.rect(screen, (self.touchedColor if self.touched else self.color),  self.rect)
