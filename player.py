@@ -28,17 +28,17 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(screen, colors.RED,  self.rect)
 
     #TODO: Maybe make a Vector2 class (with an x and magnitude)
-    def updatePlayerPosition(self, delta, hSpeed, vSpeed, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable]):
+    def updatePlayerPosition(self, delta, hSpeed, vSpeed, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable], quadTree: collidable.Collidable):
         deltaH = delta * hSpeed
         deltaV = delta * vSpeed
         self.storePreviousPosition()
-        if self.hasValidLeftInput(): self.handleMove(-deltaH, globals.ZERO, withSolids, withPermeables)
-        if self.hasValidRightInput(): self.handleMove(deltaH, globals.ZERO, withSolids, withPermeables)
-        if self.hasValidUpInput(): self.handleMove(globals.ZERO, -deltaV, withSolids, withPermeables)
-        if self.hasValidDownInput(): self.handleMove(globals.ZERO, deltaV, withSolids, withPermeables)
+        if self.hasValidLeftInput(): self.handleMove(-deltaH, globals.ZERO, withSolids, withPermeables, quadTree)
+        if self.hasValidRightInput(): self.handleMove(deltaH, globals.ZERO, withSolids, withPermeables, quadTree)
+        if self.hasValidUpInput(): self.handleMove(globals.ZERO, -deltaV, withSolids, withPermeables, quadTree)
+        if self.hasValidDownInput(): self.handleMove(globals.ZERO, deltaV, withSolids, withPermeables, quadTree)
         self.setDidMove()
 
-    def handleMove(self, deltaH: float, deltaV: float, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable]):
+    def handleMove(self, deltaH: float, deltaV: float, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable], quadTree: collidable.Collidable):
         willNotCollide = True
         for solid in withSolids:
             self.collisionsCalculated = self.collisionsCalculated + 1
@@ -54,6 +54,9 @@ class Player(pygame.sprite.Sprite):
         for permeable in withPermeables:
             self.collisionsCalculated = self.collisionsCalculated + 1
             permeable.didCollide(self.rect)
+        
+        quadTree.didCollide(self.rect)
+
     
     def resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
         # Resolve gap down to one pixel

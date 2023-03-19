@@ -20,6 +20,7 @@ def init():
     global ONE
     global SECOND_MS
     global SIMULATED_LAG_MS
+    global QUAD_TREE_DEPTH
 
     SCREEN_W = 1152
     SCREEN_H = 768
@@ -39,6 +40,7 @@ def init():
     ZERO = 0
     ONE = 1
     SECOND_MS = 1000
+    QUAD_TREE_DEPTH = 3
 
 class PressedKeys(IntEnum):
         LEFT = 0,
