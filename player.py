@@ -3,6 +3,7 @@ import sys
 import constants.globals as globals
 import constants.colors as colors
 import collidable
+import quadtreenode
 from pygame.locals import *
 from typing import Optional
 from typing import List
@@ -23,12 +24,13 @@ class Player(pygame.sprite.Sprite):
         self.yChangedPositive = False
         self.yChangedNegative = False
         self.collisionsCalculated = 0
+        self.quadTreeCollisisionCalculated = 0
         
     def drawPlayer(self, screen: pygame.Surface):
         pygame.draw.rect(screen, colors.RED,  self.rect)
 
     #TODO: Maybe make a Vector2 class (with an x and magnitude)
-    def updatePlayerPosition(self, delta, hSpeed, vSpeed, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable], quadTree: collidable.Collidable):
+    def updatePlayerPosition(self, delta, hSpeed, vSpeed, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable], quadTree: quadtreenode.QuadTreeNode):
         deltaH = delta * hSpeed
         deltaV = delta * vSpeed
         self.storePreviousPosition()
@@ -38,8 +40,13 @@ class Player(pygame.sprite.Sprite):
         if self.hasValidDownInput(): self.handleMove(globals.ZERO, deltaV, withSolids, withPermeables, quadTree)
         self.setDidMove()
 
-    def handleMove(self, deltaH: float, deltaV: float, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable], quadTree: collidable.Collidable):
+    def handleMove(self, deltaH: float, deltaV: float, withSolids: List[collidable.Collidable], withPermeables: List[collidable.Collidable], quadTree: quadtreenode.QuadTreeNode):
         willNotCollide = True
+
+        #The withSolids will be contained within a quadTree search.
+        #We searchin within the quadtree, based on the player's location, and get back a list of solids here.
+        #This is in contrast to passing in an entire list of solids (from game.py)
+        #For the moment we just want to render the quads (in game.py)
         for solid in withSolids:
             self.collisionsCalculated = self.collisionsCalculated + 1
             if solid.willCollide(self.rect, deltaH, deltaV):
@@ -55,7 +62,19 @@ class Player(pygame.sprite.Sprite):
             self.collisionsCalculated = self.collisionsCalculated + 1
             permeable.didCollide(self.rect)
         
-        quadTree.didCollide(self.rect)
+
+        self.checkQuadTreeCollisions(quadTree)
+    
+    #TODO: Set this check, and the quadtree drawing logic to ON only when DEBUG is true (at some point)
+    #This is only used for checking collisions with any of the quadtreenodes for now
+    #For the purposes of updating the visual border (for development purposes)
+    def checkQuadTreeCollisions(self, root: quadtreenode.QuadTreeNode):
+        if root is None: return
+
+        root.quad.didCollide(self.rect)
+        self.quadTreeCollisisionCalculated = self.quadTreeCollisisionCalculated + 1
+        for child in root.children:
+            self.checkQuadTreeCollisions(child)
 
     
     def resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):

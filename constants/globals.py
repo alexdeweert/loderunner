@@ -21,6 +21,7 @@ def init():
     global SECOND_MS
     global SIMULATED_LAG_MS
     global QUAD_TREE_DEPTH
+    
 
     SCREEN_W = 1152
     SCREEN_H = 768
@@ -48,4 +49,11 @@ class PressedKeys(IntEnum):
         UP = 2,
         DOWN = 3
 
+class Quadrant(IntEnum):
+        TOPLEFT = 0,
+        TOPRIGHT = 1,
+        BOTTOMLEFT = 2,
+        BOTTOMRIGHT = 3
+
 globals().update(PressedKeys.__members__)
+globals().update(Quadrant.__members__)

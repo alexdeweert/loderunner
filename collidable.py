@@ -1,5 +1,4 @@
 import pygame
-import sys
 import constants.globals as globals
 import constants.colors as colors
 from typing import Optional
@@ -15,11 +14,7 @@ class Collidable():
     
     # Use for detecting collisions where we allow overlapping
     def didCollide(self, withRect: pygame.Rect) -> bool:
-        isLeftOf = self.rect.right < withRect.left
-        isRightOf = self.rect.left > withRect.right
-        isBelow = self.rect.top > withRect.bottom
-        isAbove = self.rect.bottom < withRect.top
-        didCollide = not(isLeftOf or isRightOf or isBelow or isAbove)
+        didCollide = self.isCollision(globals.ZERO, globals.ZERO, withRect)
         self.touched = didCollide
         return didCollide
     
@@ -27,13 +22,17 @@ class Collidable():
     # We check this to determine if we will allow continued movement in a direction.
     # As noted in the player fn which calls this, this solution does not solve tunnelling. 
     def willCollide(self, withRect: pygame.Rect, proposedX: float, proposedY: float) -> Optional[pygame.Rect]:
-        isLeftOf = self.rect.right < withRect.left+proposedX
-        isRightOf = self.rect.left > withRect.right+proposedX
-        isBelow = self.rect.top > withRect.bottom+proposedY
-        isAbove = self.rect.bottom < withRect.top+proposedY
-        willCollide = not(isLeftOf or isRightOf or isBelow or isAbove)
+        willCollide = self.isCollision(proposedX, proposedY, withRect)
         self.touched = willCollide
         return willCollide
+    
+    def isCollision(self, withModX, withModY, withRect: pygame.Rect):
+        isLeftOf = self.rect.right < withRect.left+withModX
+        isRightOf = self.rect.left > withRect.right+withModX
+        isBelow = self.rect.top > withRect.bottom+withModY
+        isAbove = self.rect.bottom < withRect.top+withModY
+        return not(isLeftOf or isRightOf or isBelow or isAbove)
+
     
     def draw(self, screen: pygame.Surface) -> None:
         pygame.draw.rect(screen, (self.touchedColor if self.touched else self.color),  self.rect, 1 if self.isQuad else 0)
