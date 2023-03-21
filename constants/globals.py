@@ -25,18 +25,17 @@ def init():
 
     SCREEN_W = 1152
     SCREEN_H = 768
-    H_SPEED = 500
-    V_SPEED = 500
+    H_SPEED = 250
+    V_SPEED = 250
     SIMULATED_LAG_MS = 0
     FPS = 60
     MAX_DELTA = 1/FPS
     FPS_DISP_X = SCREEN_W-250
     FPS_DISP_Y = 0
     DEBUG_FONT = pygame.font.SysFont("Arial", 18)
-    COLLISIONS_FONT = pygame.font.SysFont("Arial", 18)
     DEBUG_FONT_COLOR = pygame.Color("Coral")
-    PLAYER_W = 32
-    PLAYER_H = 32
+    PLAYER_W = 16
+    PLAYER_H = 16
     SCREEN_CAPTION = "Loderunner"
     ZERO = 0
     ONE = 1

@@ -13,20 +13,7 @@ class Game():
         # We can disable rendering of the root quad eventually (once we have the quad tree working)
         self.solidCollidableTileSet: List[collidable.Collidable] = list()
         self.permeableCollidableTileSet: List[collidable.Collidable] = list()
-
-        # BRUTE force tiles
-        # width = 0
-        # while(width <= (globals.SCREEN_W - 32)):
-        #     self.solidCollidableTileSet.append(collidable.Collidable(width,700,32,16, True, colors.GREEN, colors.BLUE))
-        #     width += 32
-        # self.permeableCollidableTileSet.append(collidable.Collidable(10,50,163,32, False, colors.WHITE, colors.GRAY))
-        # self.permeableCollidableTileSet.append(collidable.Collidable(84,125,80,32, False, colors.WHITE, colors.GRAY))
-        # self.permeableCollidableTileSet.append(collidable.Collidable(148,175,163,32, False, colors.WHITE, colors.GRAY))
-        # self.permeableCollidableTileSet.append(collidable.Collidable(300,125,163,32, False, colors.WHITE, colors.GRAY))
-        # self.permeableCollidableTileSet.append(collidable.Collidable(394,40,100,32, False, colors.WHITE, colors.GRAY))
-        # self.permeableCollidableTileSet.append(collidable.Collidable(560,145,163,32, False, colors.WHITE, colors.GRAY))
-        # self.permeableCollidableTileSet.append(collidable.Collidable(650,64,75,32, False, colors.WHITE, colors.GRAY))
-        # self.permeableCollidableTileSet.append(collidable.Collidable(780,150,180,32, False, colors.WHITE, colors.GRAY))
+        self.children = 0
 
         pygame.display.set_caption(globals.SCREEN_CAPTION)
         self.surface = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
@@ -34,9 +21,11 @@ class Game():
         self.constructQuadTree(self.rootQuadTreeNode)
 
         # QUADTREE tiles
-        self.quadtreeTile = collidable.Collidable(2,2,16,16, True, colors.GREEN, colors.BLUE)
+        #self.quadtreeTile = collidable.Collidable(2,2,16,16, True, colors.GREEN, colors.BLUE)
+        self.quadtreeTile2 = collidable.Collidable(208,88,16,16, True, colors.GREEN, colors.BLUE)
         # Add tiles to QUADTREE
-        self.insertCollidableIntoQuadTree(self.quadtreeTile, self.rootQuadTreeNode)
+        #self.insertCollidableIntoQuadTree(self.quadtreeTile, self.rootQuadTreeNode)
+        self.insertCollidableIntoQuadTree(self.quadtreeTile2, self.rootQuadTreeNode)
         
 
     # Where can a tile exist within a quadtreenode, only the bottom level?
@@ -48,15 +37,13 @@ class Game():
     # We return IF: its None, yes of course, but if there's no collision, we can also return.
     # We only need to go down if there's an actual collision with that node.
     def insertCollidableIntoQuadTree(self, collidable: collidable.Collidable, root: quadtreenode.QuadTreeNode):
-        #If a specific node's children are None, then we should insert here.
-        #We should've only been able to get here with proper search.
         if root is None: return
 
         #Okay so the rule should be, only add to the collidables list IF its a child node (ie; there are no children below it)
         #And we recur down ONLY if a collision exists - there's no point in recurring down if theres no collision with a child.
         #So why is this more efficient (its an extension of broad phase)
         #If there are 4 levels, there are only AT MOST 4^4 (256 checks) traversals downward
-        #and then whatever
+        #4^5 checks (5 levels) is 1024 checks
 
         #root.children needs to actually have children (ie; it cant be none type)
         for child in root.children:
@@ -80,8 +67,9 @@ class Game():
             self.insertSubQuadsIntoQuad(subquad)
             for subsubquad in subquad.children:
                 self.insertSubQuadsIntoQuad(subsubquad)
-                for subsubsubquad in subsubquad.children:
-                    self.insertSubQuadsIntoQuad(subsubsubquad)
+                # for subsubsubquad in subsubquad.children:
+                #     self.insertSubQuadsIntoQuad(subsubsubquad)
+        print(f"Children: {self.children}")
 
     def insertSubQuadsIntoQuad(self, root: quadtreenode.QuadTreeNode):
         quadList = self.createSubQuads(root)
@@ -89,6 +77,7 @@ class Game():
         root.children[globals.Quadrant.TOPRIGHT] = quadList[globals.Quadrant.TOPRIGHT]
         root.children[globals.Quadrant.BOTTOMLEFT] = quadList[globals.Quadrant.BOTTOMLEFT]
         root.children[globals.Quadrant.BOTTOMRIGHT] = quadList[globals.Quadrant.BOTTOMRIGHT]
+        self.children = self.children + 4
     
     # Given a root quad, generate a list of 4 subquads
     def createSubQuads(self, root: quadtreenode.QuadTreeNode) -> List[quadtreenode.QuadTreeNode]:
@@ -125,8 +114,12 @@ class Game():
     
     def renderCollisionsText(self):
         bruteForceCollisions = f"collisions: {str(self.player.collisionsCalculated)}"
-        renderedBruteForceCollisions = globals.COLLISIONS_FONT.render(bruteForceCollisions, True, globals.DEBUG_FONT_COLOR)
+        renderedBruteForceCollisions = globals.DEBUG_FONT.render(bruteForceCollisions, True, globals.DEBUG_FONT_COLOR)
         return renderedBruteForceCollisions
+    
+    def renderPlayerPosition(self):
+        playerPosition = f"PlayerX: {str(self.player.rect.x)}, PlayerY: {str(self.player.rect.y)}"
+        return globals.DEBUG_FONT.render(playerPosition, True, globals.DEBUG_FONT_COLOR)
 
 
     # React to events (input, etc)
@@ -138,7 +131,7 @@ class Game():
 
     # Update game logic based on inputs
     def update(self, delta):
-        self.player.updatePlayerPosition(delta, globals.H_SPEED, globals.V_SPEED, self.solidCollidableTileSet, self.permeableCollidableTileSet, self.rootQuadTreeNode)
+        self.player.updatePlayerPosition(delta, globals.H_SPEED, globals.V_SPEED, self.rootQuadTreeNode)
 
     # Render drawable objects
     def render(self):
@@ -149,6 +142,9 @@ class Game():
 
         self.surface.blit(self.renderFpsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y))
         self.surface.blit(self.renderCollisionsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 16))
+        self.surface.blit(self.renderPlayerPosition(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 32))
+        #self.quadtreeTile.draw(self.surface)
+        self.quadtreeTile2.draw(self.surface)
         self.player.drawPlayer(self.surface)
         # TODO: move tilesets logic to world class
         for solidTile in self.solidCollidableTileSet:
