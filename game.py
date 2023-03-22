@@ -6,23 +6,34 @@ from enum import IntEnum
 from typing import List
 from typing import Optional
 
+'''
+TODO:
+    This works but there's a problem with the quad tree somewhere.
+    If a solid is near the edge of a base level quad it won't be checked near that edge.
+    We can't just place solids on edges to solve this, because then bullets, etc won't be detected properly.
+
+    The logic is that the player rect will do a quad tree search for any subnodes that it's touching.
+    But if it hasn't yet touched the quad, then it won't search for a square, and a square on the edge will be
+    entered because of the speed of the square, traversing that distance prior to the check.
+'''
+
 class Game():
     def __init__(self) -> None:
         self.clock = pygame.time.Clock()
         self.player = player.Player()
         # We can disable rendering of the root quad eventually (once we have the quad tree working)
-        self.solidCollidableTileSet: List[collidable.Collidable] = list()
-        self.permeableCollidableTileSet: List[collidable.Collidable] = list()
+        self.solidCollidableTileSet: List[collidable.Collidable] = []
+        self.permeableCollidableTileSet: List[collidable.Collidable] = []
         self.children = 0
 
         pygame.display.set_caption(globals.SCREEN_CAPTION)
         self.surface = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
-        self.rootQuadTreeNode = quadtreenode.QuadTreeNode(collidable.Collidable(0,0,globals.SCREEN_W,globals.SCREEN_H, False, colors.BLACK, colors.MAGENTA, True), self.getEmptyQuads(), list())
+        self.rootQuadTreeNode = quadtreenode.QuadTreeNode(collidable.Collidable(0,0,globals.SCREEN_W,globals.SCREEN_H, False, colors.BLACK, colors.MAGENTA, True), self.getEmptyQuads(), [])
         self.constructQuadTree(self.rootQuadTreeNode)
 
         # QUADTREE tiles
         #self.quadtreeTile = collidable.Collidable(2,2,16,16, True, colors.GREEN, colors.BLUE)
-        self.quadtreeTile2 = collidable.Collidable(208,88,16,16, True, colors.GREEN, colors.BLUE)
+        self.quadtreeTile2 = collidable.Collidable(566,374,16,16, True, colors.GREEN, colors.BLUE)
         # Add tiles to QUADTREE
         #self.insertCollidableIntoQuadTree(self.quadtreeTile, self.rootQuadTreeNode)
         self.insertCollidableIntoQuadTree(self.quadtreeTile2, self.rootQuadTreeNode)
@@ -81,11 +92,11 @@ class Game():
     
     # Given a root quad, generate a list of 4 subquads
     def createSubQuads(self, root: quadtreenode.QuadTreeNode) -> List[quadtreenode.QuadTreeNode]:
-        result: List[quadtreenode.QuadTreeNode] = list()
-        topLeft = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.x, root.quad.rect.y, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), list())
-        topRight = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.centerx, root.quad.rect.y, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), list())
-        bottomLeft = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.x, root.quad.rect.centery, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), list())
-        bottomRight = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.centerx, root.quad.rect.centery, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), list())
+        result: List[quadtreenode.QuadTreeNode] = []
+        topLeft = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.x, root.quad.rect.y, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), [])
+        topRight = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.centerx, root.quad.rect.y, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), [])
+        bottomLeft = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.x, root.quad.rect.centery, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), [])
+        bottomRight = quadtreenode.QuadTreeNode(collidable.Collidable(root.quad.rect.centerx, root.quad.rect.centery, root.quad.rect.width/2, root.quad.rect.height/2, False, colors.BLACK, colors.GREEN, True), self.getEmptyQuads(), [])
         return [topLeft, topRight, bottomLeft, bottomRight]
     
     def getEmptyQuads(self):

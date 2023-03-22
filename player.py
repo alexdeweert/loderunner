@@ -68,7 +68,9 @@ class Player(pygame.sprite.Sprite):
         # that any number of collidables will exist in a given location.) Its upper bounded by log(4^k) * n^2 s.t. k is the number of levels of the
         # quad tree, and n is the number of collidable objects in the game, at every frame.
 
-        staticSolids = self.findStaticCollidablesInQuadTree(quadTree, set([]), [])
+        #staticSolids = self.findStaticCollidablesInQuadTree(quadTree, set([]), [])
+        staticSolids = self.findSolidsInQuadTree(quadTree, [], set([]))
+        print(staticSolids)
         print(f"static: solids in this frame: {len(staticSolids)}")
 
         #The withSolids will be contained within a quadTree search.
@@ -104,45 +106,37 @@ class Player(pygame.sprite.Sprite):
         for child in root.children:
             self.checkQuadTreeCollisions(child)
 
-    # Its possible that multiple sets of collidables can be returned from the various bottom levels.
-    # If the player is touching all 4 bottom level quads, they will all want to return their solids.
-    # We don't want to duplicate entries though - because if that was the case we add a 4 constant multiplier
-    # to our upper bounded worse case scenario (since 4 quads all with the same list of collidables would return 4 x that amount)
-    # TODO: For unmoving collidables, we only want to add these solids if they don't already exist in the results.
-    def findStaticCollidablesInQuadTree(self, root: quadtreenode.QuadTreeNode, added: set, result):
-        if root is None: return result
+    #Redo of findStaticCollidablesInQuadTree.
+    #The problem there (in theory) is that somehow we're returning to early when
+    #the player is certainly colliding with a quad, thus, never getting the list of solids back from the child node.
+    def findSolidsInQuadTree(self, root: quadtreenode.QuadTreeNode, acc: List[collidable.Collidable], collidableIds: set[int]):
+        if root is not None and root.quad.didCollide(self.rect):
+            tmp = []
+            for child in root.children:
+                tmp = tmp + self.findSolidsInQuadTree(child, acc, collidableIds)
+            
+            #We can check if we're at the bottom because root.childen[0] will be None
+            #And if that's the case, there's no need to continue. We simply return a list of results, if any.
+            if root.children[0] is None:
+                if len(root.collidables) > 0:
+                    #todo - use the set method here to avoid adding duplicates
+                    for solid in root.collidables:
+                        solidId = id(solid)
+                        if solidId not in collidableIds:
+                            collidableIds.add(solidId)
+                            tmp.append(solid)
 
-        #If we got here, if the node has collidables, it has to be the bottom level.
-        #So we want to append to the result but only if the result doesn't exist
-        # ** Important to remember and understand: Any group of bottom level nodes in a single frame, while
-        # we traverse the tree to get the solids, there should only be a single result to check on.
-        if len(root.collidables) > 0:
-            for solid in root.collidables:
-                result.append(solid)
-                # key = id(solid)
-                # #If solid's memory address does exists in the set, mark it added, add to the result
-                # if not(key in added):
-                #     print(f"added key: {key}")
-                #     added.add(key)
-                #     result.append(solid)
+            acc = acc+tmp
+        return acc
 
-        for child in root.children:
-            #ONLY recur down if this player, this rect, collides with the child.
-            if child is not None:
-                childQuad: collidable.Collidable = child.quad
-                if(childQuad.didCollide(self.rect)): return self.findStaticCollidablesInQuadTree(child, added, result)
-        return result
-
-
-    
     def resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
         # Resolve gap down to one pixel
-        x = distance - 2
+        x = distance - 1
         if(x > 0): self.rect.move_ip(dir*x, deltaV)
 
     def resolveYGap(self, withCollidable: collidable.Collidable, distance: float, deltaH: float, dir: int):
         # Resolve gap down to one pixel
-        y = distance - 2
+        y = distance - 1
         if(y > 0): self.rect.move_ip(deltaH, dir*y)
 
     def storePreviousPosition(self):
