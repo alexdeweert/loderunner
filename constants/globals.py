@@ -34,8 +34,8 @@ def init():
     FPS_DISP_Y = 0
     DEBUG_FONT = pygame.font.SysFont("Arial", 18)
     DEBUG_FONT_COLOR = pygame.Color("Coral")
-    PLAYER_W = 16
-    PLAYER_H = 16
+    PLAYER_W = 8
+    PLAYER_H = 8
     SCREEN_CAPTION = "Loderunner"
     ZERO = 0
     ONE = 1

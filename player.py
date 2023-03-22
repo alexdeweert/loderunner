@@ -16,8 +16,8 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill((colors.RED))
         self.rect = self.image.get_rect()
-        # self.rect.x = 500
-        # self.rect.y = 500
+        self.rect.x = 500
+        self.rect.y = 680
         self.playerKeysPressed = [False,False,False,False]
         self.prevX = self.rect.x
         self.prevY = self.rect.y

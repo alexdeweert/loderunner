@@ -22,6 +22,7 @@ class Game():
         self.clock = pygame.time.Clock()
         self.player = player.Player()
         # We can disable rendering of the root quad eventually (once we have the quad tree working)
+        # Or add a debug mode and leave in the ability to do so.
         self.solidCollidableTileSet: List[collidable.Collidable] = []
         self.permeableCollidableTileSet: List[collidable.Collidable] = []
         self.children = 0
@@ -31,12 +32,10 @@ class Game():
         self.rootQuadTreeNode = quadtreenode.QuadTreeNode(collidable.Collidable(0,0,globals.SCREEN_W,globals.SCREEN_H, False, colors.BLACK, colors.MAGENTA, True), self.getEmptyQuads(), [])
         self.constructQuadTree(self.rootQuadTreeNode)
 
-        # QUADTREE tiles
-        #self.quadtreeTile = collidable.Collidable(2,2,16,16, True, colors.GREEN, colors.BLUE)
-        self.quadtreeTile2 = collidable.Collidable(566,374,16,16, True, colors.GREEN, colors.BLUE)
-        # Add tiles to QUADTREE
-        #self.insertCollidableIntoQuadTree(self.quadtreeTile, self.rootQuadTreeNode)
-        self.insertCollidableIntoQuadTree(self.quadtreeTile2, self.rootQuadTreeNode)
+        for i in range(0,36):
+            newTile = collidable.Collidable(i*32,700,32,32, True, colors.GREEN, colors.BLUE)
+            self.solidCollidableTileSet.append(newTile)
+            self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
         
 
     # Where can a tile exist within a quadtreenode, only the bottom level?
@@ -78,8 +77,10 @@ class Game():
             self.insertSubQuadsIntoQuad(subquad)
             for subsubquad in subquad.children:
                 self.insertSubQuadsIntoQuad(subsubquad)
-                # for subsubsubquad in subsubquad.children:
-                #     self.insertSubQuadsIntoQuad(subsubsubquad)
+                for subsubsubquad in subsubquad.children:
+                    self.insertSubQuadsIntoQuad(subsubsubquad)
+                    for subsubsubsubquad in subsubsubquad.children:
+                        self.insertSubQuadsIntoQuad(subsubsubsubquad)
         print(f"Children: {self.children}")
 
     def insertSubQuadsIntoQuad(self, root: quadtreenode.QuadTreeNode):
@@ -154,8 +155,6 @@ class Game():
         self.surface.blit(self.renderFpsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y))
         self.surface.blit(self.renderCollisionsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 16))
         self.surface.blit(self.renderPlayerPosition(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 32))
-        #self.quadtreeTile.draw(self.surface)
-        self.quadtreeTile2.draw(self.surface)
         self.player.drawPlayer(self.surface)
         # TODO: move tilesets logic to world class
         for solidTile in self.solidCollidableTileSet:
