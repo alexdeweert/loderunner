@@ -9,7 +9,7 @@ from typing import Optional
 from typing import List
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, surface: pygame.Surface) -> None:
+    def __init__(self, surface: pygame.Surface, x: int, y: int) -> None:
         super().__init__()
         self.surface = surface
         self.width = globals.PLAYER_W
@@ -17,8 +17,8 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill((colors.RED))
         self.rect = self.image.get_rect()
-        self.rect.x = 500
-        self.rect.y = 680
+        self.rect.x = x
+        self.rect.y = y
         self.playerKeysPressed = [False,False,False,False]
         self.prevX = self.rect.x
         self.prevY = self.rect.y
@@ -28,6 +28,10 @@ class Player(pygame.sprite.Sprite):
         self.yChangedNegative = False
         self.collisionsCalculated = 0
         self.quadTreeCollisisionCalculated = 0
+        self.onFloor = False
+        self.onLadder = False
+        self.touchingLadder = False
+        self.onRope = False
         
     def drawPlayer(self):
         pygame.draw.rect(self.surface, colors.RED,  self.rect)
@@ -35,11 +39,13 @@ class Player(pygame.sprite.Sprite):
     def updatePlayerPosition(self, delta, hSpeed, vSpeed, quadTree: quadtreenode.QuadTreeNode):
         deltaH = delta * hSpeed
         deltaV = delta * vSpeed
+        gravity = delta * globals.GRAVITY_SPEED
         self.__storePreviousPosition()
-        if self.__hasValidLeftInput(): self.__handleMove(-deltaH, globals.ZERO, quadTree)
-        if self.__hasValidRightInput(): self.__handleMove(deltaH, globals.ZERO, quadTree)
-        if self.__hasValidUpInput(): self.__handleMove(globals.ZERO, -deltaV, quadTree)
-        if self.__hasValidDownInput(): self.__handleMove(globals.ZERO, deltaV, quadTree)
+        if self.__hasValidLeftInput(): self.__handleMove(-deltaH, globals.ZERO, delta, quadTree)
+        if self.__hasValidRightInput(): self.__handleMove(deltaH, globals.ZERO, delta,quadTree)
+        if self.__hasValidUpInput(): self.__handleMove(globals.ZERO, -deltaV, delta,quadTree)
+        if self.__hasValidDownInput(): self.__handleMove(globals.ZERO, deltaV, delta,quadTree)
+        if not self.onLadder: self.__handleMove(globals.ZERO, gravity, delta, quadTree)
         self.__setDidMove()
     
     # Not used at the moment, could use later though.
@@ -74,25 +80,30 @@ class Player(pygame.sprite.Sprite):
             pygame.quit()
             sys.exit()
 
-    def __handleMove(self, deltaH: float, deltaV: float, quadTree: quadtreenode.QuadTreeNode):
+    def __handleMove(self, deltaH: float, deltaV: float, delta: float, quadTree: quadtreenode.QuadTreeNode):
+        if globals.DEBUG: self.__checkQuadTreeCollisionsForDraw(quadTree)
         willNotCollide = True
         collidables = self.__findSolidsInQuadTree(quadTree, [], set([]))
+        self.onLadder = False
+        self.onFloor = False
         for collidable in collidables:
             self.collisionsCalculated = self.collisionsCalculated + 1
             if collidable.isSolid:
                 if collidable.willCollide(self.rect, deltaH, deltaV):
+                    self.onFloor = collidable.isFloor
                     if deltaH > 0: self.__resolveXGap(collidable, collidable.rect.left - self.rect.right, deltaV, 1)
                     if deltaH < 0: self.__resolveXGap(collidable, self.rect.left - collidable.rect.right, deltaV, -1)
                     if deltaV > 0: self.__resolveYGap(collidable, collidable.rect.top - self.rect.bottom, deltaH, 1)
                     if deltaV < 0: self.__resolveYGap(collidable, self.rect.top - collidable.rect.bottom, deltaH, -1)
                     willNotCollide = False
-            else:
-                collidable.didCollide(self.rect)
-        
+            elif collidable.didCollide(self.rect) and collidable.isLadder:
+                self.onLadder = True
+                self.onFloor = False
+
+                
         if willNotCollide:
             self.rect.move_ip(deltaH, deltaV)
-
-        if globals.DEBUG: self.__checkQuadTreeCollisionsForDraw(quadTree)
+        
     
     def __resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
         # Resolve gap down to one pixel
@@ -115,13 +126,13 @@ class Player(pygame.sprite.Sprite):
         self.yChangedNegative = self.rect.y < self.prevY
 
     def __hasValidLeftInput(self):
-        return self.playerKeysPressed[globals.PressedKeys.LEFT] and not self.playerKeysPressed[globals.PressedKeys.RIGHT]
+        return (self.onFloor or self.onLadder) and self.playerKeysPressed[globals.PressedKeys.LEFT] and not self.playerKeysPressed[globals.PressedKeys.RIGHT]
     def __hasValidRightInput(self):
-        return self.playerKeysPressed[globals.PressedKeys.RIGHT] and not self.playerKeysPressed[globals.PressedKeys.LEFT]
+        return (self.onFloor or self.onLadder) and self.playerKeysPressed[globals.PressedKeys.RIGHT] and not self.playerKeysPressed[globals.PressedKeys.LEFT]
     def __hasValidUpInput(self):
-        return self.playerKeysPressed[globals.PressedKeys.UP] and not self.playerKeysPressed[globals.PressedKeys.DOWN]
+        return self.onLadder and self.playerKeysPressed[globals.PressedKeys.UP] and not self.playerKeysPressed[globals.PressedKeys.DOWN]
     def __hasValidDownInput(self):
-        return self.playerKeysPressed[globals.PressedKeys.DOWN] and not self.playerKeysPressed[globals.PressedKeys.UP]
+        return (self.onLadder or self.onRope) and self.playerKeysPressed[globals.PressedKeys.DOWN] and not self.playerKeysPressed[globals.PressedKeys.UP]
 
     def __checkQuadTreeCollisionsForDraw(self, root: quadtreenode.QuadTreeNode):
         if root is None: return

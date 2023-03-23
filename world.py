@@ -1,8 +1,7 @@
-import pygame, sys, player, collidable, quadtreenode
+import pygame, collidable, quadtreenode
 import constants.globals as globals
 import constants.colors as colors
 from pygame.locals import *
-from enum import IntEnum
 from typing import List
 from typing import Optional
 
@@ -14,13 +13,23 @@ class World():
         self.surface = surface
         self.constructQuadTree(self.rootQuadTreeNode)
         self.initSolidTiles()
-    
+
     def getQuadTree(self):
         return self.rootQuadTreeNode
 
     def initSolidTiles(self):
         for i in range(0,36):
-            newTile = collidable.Collidable(i*32,700,32,32, True, colors.GREEN, colors.BLUE)
+            newTile = collidable.Collidable(i*32,704,32,32, True, colors.GREEN, colors.BLUE, isFloor=True)
+            self.solidCollidableTileSet.append(newTile)
+            self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
+
+        for i in range(17,20):
+            newTile = collidable.Collidable(i*32,290,32,32, True, colors.GREEN, colors.BLUE, isFloor=True)
+            self.solidCollidableTileSet.append(newTile)
+            self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
+
+        for i in range(9,22):
+            newTile = collidable.Collidable(500,i*32,32,32, False, colors.GRAY, colors.WHITE, isLadder=True)
             self.solidCollidableTileSet.append(newTile)
             self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
         

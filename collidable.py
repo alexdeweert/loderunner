@@ -4,13 +4,28 @@ import constants.colors as colors
 from typing import Optional
 
 class Collidable():
-    def __init__(self, x: int, y: int, width: int, height: int, isSolid: Optional[bool], color: Optional[pygame.Color], touchedColor: Optional[pygame.Color], isQuad: bool = False) -> None:
+    def __init__(
+            self,
+            x: int,
+            y: int,
+            width: int,
+            height: int,
+            isSolid: Optional[bool],
+            color: Optional[pygame.Color],
+            touchedColor: Optional[pygame.Color],
+            isQuad: bool = False,
+            isFloor: bool = False,
+            isLadder: bool = False
+        ) -> None:
+        
         self.rect: pygame.Rect = pygame.Rect(x,y,width,height)
         self.color = color
         self.touchedColor = touchedColor
         self.isSolid = isSolid
         self.touched = False
         self.isQuad = isQuad
+        self.isFloor = isFloor
+        self.isLadder = isLadder
     
     # Use for detecting collisions where we allow overlapping
     def didCollide(self, withRect: pygame.Rect) -> bool:

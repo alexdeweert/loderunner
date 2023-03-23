@@ -10,7 +10,7 @@ class Game():
         self.surface = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
         self.clock = pygame.time.Clock()
         self.world = world.World(self.surface)
-        self.player = player.Player(self.surface)
+        self.player = player.Player(self.surface, 300, 500)
         self.console = console.Console(self.surface, self.player, self.world, self.clock)
 
     # React to events (input, etc)
