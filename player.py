@@ -9,8 +9,9 @@ from typing import Optional
 from typing import List
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self) -> None:
+    def __init__(self, surface: pygame.Surface) -> None:
         super().__init__()
+        self.surface = surface
         self.width = globals.PLAYER_W
         self.height = globals.PLAYER_H
         self.image = pygame.Surface([self.width, self.height])
@@ -28,128 +29,20 @@ class Player(pygame.sprite.Sprite):
         self.collisionsCalculated = 0
         self.quadTreeCollisisionCalculated = 0
         
-    def drawPlayer(self, screen: pygame.Surface):
-        pygame.draw.rect(screen, colors.RED,  self.rect)
+    def drawPlayer(self):
+        pygame.draw.rect(self.surface, colors.RED,  self.rect)
 
-    #TODO: Maybe make a Vector2 class (with an x and magnitude)
     def updatePlayerPosition(self, delta, hSpeed, vSpeed, quadTree: quadtreenode.QuadTreeNode):
         deltaH = delta * hSpeed
         deltaV = delta * vSpeed
-        self.storePreviousPosition()
-        if self.hasValidLeftInput(): self.handleMove(-deltaH, globals.ZERO, quadTree)
-        if self.hasValidRightInput(): self.handleMove(deltaH, globals.ZERO, quadTree)
-        if self.hasValidUpInput(): self.handleMove(globals.ZERO, -deltaV, quadTree)
-        if self.hasValidDownInput(): self.handleMove(globals.ZERO, deltaV, quadTree)
-        self.setDidMove()
-
-    def handleMove(self, deltaH: float, deltaV: float, quadTree: quadtreenode.QuadTreeNode):
-        willNotCollide = True
-
-        #Given the quadtree, based on the players location we search down, depending on whether a collision exists, until we get
-        #To the bottom. So, at every step we are performing 4^n checks, s.t. n is the number of levels down. ie; at 5 levels we have 1024
-        #checks in every frame - this is a lot when we don't have very many objects. But as the number of collidable objects grow, the number
-        #of brute force checks go down. For example, if we have 5 objects all checking each other's position at every frame (when a single object
-        # does 5 checks every frame, then we have 5*5 checks where they all check eachother). Assume have n^2 checks in a brute force situation.
-        
-        # Depending on screen dimensions, with 5 levels we get 1364 bottom level quads.
-        # Assume we have 1364 objects, all brute force checking each other. This is over 1.8 million collision checks at every frame.
-        # Assume that these same objects are inserted into a quad tree, all in a single spot. The player is not colliding with the quad that
-        # holds that group of objects. However, if the player occupies that same quad, then yes, those 1.8 million checks will occur. This is
-        # certainly a weakness of the quadtree method. But the chances of all objects appearing in a single spot - while stastically possible -
-        # is very tiny (or just poor design).
-
-        # Instead, imagine that those 1364 objects are spread evenly, one in each bottom level quad.
-        # Then, at every frame, the player queries the quadtree, searching only the quad that it currently occupies, down to the bottom level.
-        # And then it sees the list of collidables in that quadrant - then and only then does it do the more expensive collisision detection and
-        # resolution.
-
-        #So, if there are 5 levels of subquadrants, how many checks does the player do in order every frame to get the list of possible collidables?
-        #log(4^5). And then the number of collisions (which, at its lowest level is the number of collidables, but in reality its the probability
-        # that any number of collidables will exist in a given location.) Its upper bounded by log(4^k) * n^2 s.t. k is the number of levels of the
-        # quad tree, and n is the number of collidable objects in the game, at every frame.
-
-        #staticSolids = self.findStaticCollidablesInQuadTree(quadTree, set([]), [])
-        staticSolids = self.findSolidsInQuadTree(quadTree, [], set([]))
-        print(staticSolids)
-        print(f"static: solids in this frame: {len(staticSolids)}")
-
-        #The withSolids will be contained within a quadTree search.
-        #We searchin within the quadtree, based on the player's location, and get back a list of solids here.
-        #This is in contrast to passing in an entire list of solids (from game.py)
-        #For the moment we just want to render the quads (in game.py)
-        for solid in staticSolids:
-            self.collisionsCalculated = self.collisionsCalculated + 1
-            if solid.willCollide(self.rect, deltaH, deltaV):
-                if deltaH > 0: self.resolveXGap(solid, solid.rect.left - self.rect.right, deltaV, 1)
-                if deltaH < 0: self.resolveXGap(solid, self.rect.left - solid.rect.right, deltaV, -1)
-                if deltaV > 0: self.resolveYGap(solid, solid.rect.top - self.rect.bottom, deltaH, 1)
-                if deltaV < 0: self.resolveYGap(solid, self.rect.top - solid.rect.bottom, deltaH, -1)
-                willNotCollide = False
-        if willNotCollide:
-            self.rect.move_ip(deltaH, deltaV)
-        
-        # for permeable in withPermeables:
-        #     self.collisionsCalculated = self.collisionsCalculated + 1
-        #     permeable.didCollide(self.rect)
-        
-
-        self.checkQuadTreeCollisions(quadTree)
+        self.__storePreviousPosition()
+        if self.__hasValidLeftInput(): self.__handleMove(-deltaH, globals.ZERO, quadTree)
+        if self.__hasValidRightInput(): self.__handleMove(deltaH, globals.ZERO, quadTree)
+        if self.__hasValidUpInput(): self.__handleMove(globals.ZERO, -deltaV, quadTree)
+        if self.__hasValidDownInput(): self.__handleMove(globals.ZERO, deltaV, quadTree)
+        self.__setDidMove()
     
-    #TODO: Set this check, and the quadtree drawing logic to ON only when DEBUG is true (at some point)
-    #This is only used for checking collisions with any of the quadtreenodes for now
-    #For the purposes of updating the visual border (for development purposes)
-    def checkQuadTreeCollisions(self, root: quadtreenode.QuadTreeNode):
-        if root is None: return
-
-        root.quad.didCollide(self.rect)
-        self.quadTreeCollisisionCalculated = self.quadTreeCollisisionCalculated + 1
-        for child in root.children:
-            self.checkQuadTreeCollisions(child)
-
-    #Redo of findStaticCollidablesInQuadTree.
-    #The problem there (in theory) is that somehow we're returning to early when
-    #the player is certainly colliding with a quad, thus, never getting the list of solids back from the child node.
-    def findSolidsInQuadTree(self, root: quadtreenode.QuadTreeNode, acc: List[collidable.Collidable], collidableIds: set[int]):
-        if root is not None and root.quad.didCollide(self.rect):
-            tmp = []
-            for child in root.children:
-                tmp = tmp + self.findSolidsInQuadTree(child, acc, collidableIds)
-            
-            #We can check if we're at the bottom because root.childen[0] will be None
-            #And if that's the case, there's no need to continue. We simply return a list of results, if any.
-            if root.children[0] is None:
-                if len(root.collidables) > 0:
-                    #todo - use the set method here to avoid adding duplicates
-                    for solid in root.collidables:
-                        solidId = id(solid)
-                        if solidId not in collidableIds:
-                            collidableIds.add(solidId)
-                            tmp.append(solid)
-
-            acc = acc+tmp
-        return acc
-
-    def resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
-        # Resolve gap down to one pixel
-        x = distance - 1
-        if(x > 0): self.rect.move_ip(dir*x, deltaV)
-
-    def resolveYGap(self, withCollidable: collidable.Collidable, distance: float, deltaH: float, dir: int):
-        # Resolve gap down to one pixel
-        y = distance - 1
-        if(y > 0): self.rect.move_ip(deltaH, dir*y)
-
-    def storePreviousPosition(self):
-        self.prevX = self.rect.x
-        self.prevY = self.rect.y
-
-    def setDidMove(self):
-        self.xChangedPositive = self.rect.x > self.prevX
-        self.xChangedNegative = self.rect.x < self.prevX
-        self.yChangedPositive = self.rect.y > self.prevY
-        self.yChangedNegative = self.rect.y < self.prevY
-
-    # This seems to work (at least when we're not using delta to scale movements, need to verify)
+    # Not used at the moment, could use later though.
     def didMoveUp(self):
         return self.yChangedNegative
     def didMoveDown(self):
@@ -181,11 +74,75 @@ class Player(pygame.sprite.Sprite):
             pygame.quit()
             sys.exit()
 
-    def hasValidLeftInput(self):
+    def __handleMove(self, deltaH: float, deltaV: float, quadTree: quadtreenode.QuadTreeNode):
+        willNotCollide = True
+        collidables = self.__findSolidsInQuadTree(quadTree, [], set([]))
+        for collidable in collidables:
+            self.collisionsCalculated = self.collisionsCalculated + 1
+            if collidable.isSolid:
+                if collidable.willCollide(self.rect, deltaH, deltaV):
+                    if deltaH > 0: self.__resolveXGap(collidable, collidable.rect.left - self.rect.right, deltaV, 1)
+                    if deltaH < 0: self.__resolveXGap(collidable, self.rect.left - collidable.rect.right, deltaV, -1)
+                    if deltaV > 0: self.__resolveYGap(collidable, collidable.rect.top - self.rect.bottom, deltaH, 1)
+                    if deltaV < 0: self.__resolveYGap(collidable, self.rect.top - collidable.rect.bottom, deltaH, -1)
+                    willNotCollide = False
+            else:
+                collidable.didCollide(self.rect)
+        
+        if willNotCollide:
+            self.rect.move_ip(deltaH, deltaV)
+
+        if globals.DEBUG: self.__checkQuadTreeCollisionsForDraw(quadTree)
+    
+    def __resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
+        # Resolve gap down to one pixel
+        x = distance - 1
+        if(x > 0): self.rect.move_ip(dir*x, deltaV)
+
+    def __resolveYGap(self, withCollidable: collidable.Collidable, distance: float, deltaH: float, dir: int):
+        # Resolve gap down to one pixel
+        y = distance - 1
+        if(y > 0): self.rect.move_ip(deltaH, dir*y)
+
+    def __storePreviousPosition(self):
+        self.prevX = self.rect.x
+        self.prevY = self.rect.y
+
+    def __setDidMove(self):
+        self.xChangedPositive = self.rect.x > self.prevX
+        self.xChangedNegative = self.rect.x < self.prevX
+        self.yChangedPositive = self.rect.y > self.prevY
+        self.yChangedNegative = self.rect.y < self.prevY
+
+    def __hasValidLeftInput(self):
         return self.playerKeysPressed[globals.PressedKeys.LEFT] and not self.playerKeysPressed[globals.PressedKeys.RIGHT]
-    def hasValidRightInput(self):
+    def __hasValidRightInput(self):
         return self.playerKeysPressed[globals.PressedKeys.RIGHT] and not self.playerKeysPressed[globals.PressedKeys.LEFT]
-    def hasValidUpInput(self):
+    def __hasValidUpInput(self):
         return self.playerKeysPressed[globals.PressedKeys.UP] and not self.playerKeysPressed[globals.PressedKeys.DOWN]
-    def hasValidDownInput(self):
+    def __hasValidDownInput(self):
         return self.playerKeysPressed[globals.PressedKeys.DOWN] and not self.playerKeysPressed[globals.PressedKeys.UP]
+
+    def __checkQuadTreeCollisionsForDraw(self, root: quadtreenode.QuadTreeNode):
+        if root is None: return
+        root.quad.didCollide(self.rect)
+        self.quadTreeCollisisionCalculated = self.quadTreeCollisisionCalculated + 1
+        for child in root.children:
+            self.__checkQuadTreeCollisionsForDraw(child)
+
+    def __findSolidsInQuadTree(self, root: quadtreenode.QuadTreeNode, acc: List[collidable.Collidable], collidableIds: set[int]):
+        if root is not None and root.quad.didCollide(self.rect):
+            tmp = []
+            for child in root.children:
+                tmp = tmp + self.__findSolidsInQuadTree(child, acc, collidableIds)
+            
+            if root.children[0] is None:
+                if len(root.collidables) > 0:
+                    for solid in root.collidables:
+                        solidId = id(solid)
+                        if solidId not in collidableIds:
+                            collidableIds.add(solidId)
+                            tmp.append(solid)
+
+            acc = acc+tmp
+        return acc

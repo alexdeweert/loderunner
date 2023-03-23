@@ -2,6 +2,7 @@ import pygame
 from enum import IntEnum
 
 def init():
+    global DEBUG
     global SCREEN_W
     global SCREEN_H
     global H_SPEED
@@ -12,7 +13,6 @@ def init():
     global FPS_DISP_Y
     global DEBUG_FONT
     global DEBUG_FONT_COLOR
-    global COLLISIONS_FONT
     global PLAYER_W
     global PLAYER_H
     global SCREEN_CAPTION
@@ -22,7 +22,7 @@ def init():
     global SIMULATED_LAG_MS
     global QUAD_TREE_DEPTH
     
-
+    DEBUG = True
     SCREEN_W = 1152
     SCREEN_H = 768
     H_SPEED = 250
@@ -30,9 +30,9 @@ def init():
     SIMULATED_LAG_MS = 0
     FPS = 60
     MAX_DELTA = 1/FPS
-    FPS_DISP_X = SCREEN_W-250
-    FPS_DISP_Y = 0
-    DEBUG_FONT = pygame.font.SysFont("Arial", 18)
+    FPS_DISP_X = 10
+    FPS_DISP_Y = 5
+    DEBUG_FONT = pygame.font.SysFont("Arial", 12)
     DEBUG_FONT_COLOR = pygame.Color("Coral")
     PLAYER_W = 8
     PLAYER_H = 8
