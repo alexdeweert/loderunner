@@ -10,7 +10,7 @@ class Game():
         self.surface = pygame.display.set_mode((globals.SCREEN_W, globals.SCREEN_H))
         self.clock = pygame.time.Clock()
         self.world = world.World(self.surface)
-        self.player = player.Player(self.surface, 300, 500, self.world.getQuadTree())
+        self.player = player.Player(self.surface, 300, 500, globals.PLAYER_W, globals.PLAYER_H, self.world.getQuadTree())
         self.console = console.Console(self.surface, self.player, self.world, self.clock)
 
     # React to events (input, etc)
@@ -29,7 +29,7 @@ class Game():
         self.surface.fill(colors.BLACK)
         self.console.renderForDebug()
         self.world.renderTileSet()
-        self.player.drawPlayer()
+        self.player.draw()
         pygame.display.flip()
         
     def run(self):

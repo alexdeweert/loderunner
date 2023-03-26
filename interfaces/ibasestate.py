@@ -2,7 +2,7 @@ from abc import abstractmethod
 import quadtreenode
 import pygame
 
-class BaseState():
+class IBaseState():
     @abstractmethod
     def enter(self):
         print("BasePlayerState::enter default implementation")
@@ -11,9 +11,8 @@ class BaseState():
     def exit(self):
         print("BasePlayerState::exit default implementation")
     
-    #TODO: character should be character.Character (after we make it the base entity class)
     @abstractmethod
-    def update(self, character):
+    def update(self):
         print("BasePlayerState::update default implementation")
 
     @abstractmethod

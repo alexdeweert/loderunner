@@ -29,9 +29,13 @@ class World():
             self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
 
         for i in range(9,22):
-            newTile = collidable.Collidable(500,i*32,32,32, False, colors.GRAY, colors.WHITE, isLadder=True)
+            newTile = collidable.Collidable(516,i*32,16,32, False, colors.GRAY, colors.WHITE, isLadder=True)
             self.solidCollidableTileSet.append(newTile)
             self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
+
+        newTile = collidable.Collidable(490,224,64,32, True, colors.GRAY, colors.WHITE)
+        self.solidCollidableTileSet.append(newTile)
+        self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
         
     def insertCollidableIntoQuadTree(self, collidable: collidable.Collidable, root: quadtreenode.QuadTreeNode):
         if root is None: return

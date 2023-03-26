@@ -17,6 +17,8 @@ class Console():
             self.surface.blit(self.__renderPlayerPositionText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 32))
             self.surface.blit(self.__renderOnFloorState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 48))
             self.surface.blit(self.__renderLadderState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 64))
+            self.surface.blit(self.__renderRopeState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 80))
+            self.surface.blit(self.__renderStates(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 96))
 
     def __renderFpsText(self):
         fpsString = f"fps: {str(int(self.clock.get_fps()))}"
@@ -37,5 +39,19 @@ class Console():
         return globals.DEBUG_FONT.render(onFloorText, True, globals.DEBUG_FONT_COLOR)
     
     def __renderLadderState(self):
-        onFloorText = f"touchingLadder: {str(self.player.touchingLadder)}, onLadder: {str(self.player.onLadder)}, onRope: {str(self.player.onRope)}"
+        onFloorText = f"touchingLadder: {str(self.player.touchingLadder)}"
         return globals.DEBUG_FONT.render(onFloorText, True, globals.DEBUG_FONT_COLOR)
+    
+    def __renderRopeState(self):
+        return self.__renderText("onRope", self.player.onRope)
+    
+    def __renderText(self, label, value):
+        text = f"{label}: {str(value)}"
+        return globals.DEBUG_FONT.render(text, True, globals.DEBUG_FONT_COLOR)
+        
+    
+    #, onRope: {str(self.player.onRope)}
+    
+    def __renderStates(self):
+        stateText = f"currentState: {str(self.player.activeStateName)}, lastState: {str(self.player.prevStateName)}"
+        return globals.DEBUG_FONT.render(stateText, True, globals.DEBUG_FONT_COLOR)
