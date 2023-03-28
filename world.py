@@ -23,17 +23,17 @@ class World():
             self.solidCollidableTileSet.append(newTile)
             self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
 
-        for i in range(17,20):
-            newTile = collidable.Collidable(i*32,290,32,32, True, colors.GREEN, colors.BLUE, isFloor=True)
+        for i in range(18,20):
+            newTile = collidable.Collidable(i*32,288,32,32, True, colors.GREEN, colors.BLUE, isFloor=True)
             self.solidCollidableTileSet.append(newTile)
             self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
 
-        for i in range(9,22):
-            newTile = collidable.Collidable(516,i*32,16,32, False, colors.GRAY, colors.WHITE, isLadder=True)
+        for i in range(8,22):
+            newTile = collidable.Collidable(544,i*32,32,32, False, colors.GRAY, colors.WHITE, isLadder=True)
             self.solidCollidableTileSet.append(newTile)
             self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
 
-        newTile = collidable.Collidable(490,224,64,32, True, colors.GRAY, colors.WHITE)
+        newTile = collidable.Collidable(544,224,32,32, True, colors.GRAY, colors.WHITE)
         self.solidCollidableTileSet.append(newTile)
         self.insertCollidableIntoQuadTree(newTile, self.rootQuadTreeNode)
         
