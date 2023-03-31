@@ -14,6 +14,18 @@ class World():
         self.constructQuadTree(self.rootQuadTreeNode)
         self.initSolidTiles()
 
+    # TODO: Move this into editor, instantiate editor in game, pass instance of world to editor
+    # make getters in this class, get quadtree, etc so that we can insert.
+    def insertFloorPieceIntoWorld(self, x: int, y: int):
+        insertX = (x // 32) * 32
+        insertY = (y // 32) * 32
+        newTileFloor = collidable.Collidable(insertX,insertY,32,8, True, colors.MAGENTA, colors.GRAY, isFloor=True)
+        newTileSubFloor = collidable.Collidable(insertX,insertY+8,32,24, True, colors.GREEN, colors.WHITE, isFloor=False)
+        self.solidCollidableTileSet.append(newTileFloor)
+        self.insertCollidableIntoQuadTree(newTileFloor, self.rootQuadTreeNode)
+        self.solidCollidableTileSet.append(newTileSubFloor)
+        self.insertCollidableIntoQuadTree(newTileSubFloor, self.rootQuadTreeNode)
+
     def getQuadTree(self):
         return self.rootQuadTreeNode
 

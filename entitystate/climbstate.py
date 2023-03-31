@@ -20,16 +20,10 @@ class ClimbState(ibasestate.IBaseState):
 
         #In the case when they're touching floor (TODO: should be a wall solid collidable if we want slide behavior)
         #AND there's a diagonal movement, do up or down instead of horizontal
-
         #Prioritize resolving diagonal input as horizontal
         inputDiagonalLeft = self.__hasValidDiagonalLeft()
         inputDiagonalRight = self.__hasValidDiagonalRight()
-        # inputDiagonalUpLeft = self.__hasDiagonalUpLeft()
-        # inputDiagonalUpRight = self.__hasDiagonalUpRight()
-        # if self.entity.onFloor and (inputDiagonalUpLeft or inputDiagonalUpRight):
-        #     if inputDiagonalUpLeft: self.entity.handleMoveUp()
-        #     if inputDiagonalUpRight: self.entity.handleMoveRight()
-        if not self.entity.onFloor and (inputDiagonalLeft or inputDiagonalRight):
+        if not self.entity.onFloor and not self.entity.onWall and (inputDiagonalLeft or inputDiagonalRight):
             if inputDiagonalLeft: self.entity.handleMoveLeft()
             if inputDiagonalRight: self.entity.handleMoveRight()
         else:
@@ -40,10 +34,6 @@ class ClimbState(ibasestate.IBaseState):
 
         if not self.entity.onFloor and not self.entity.touchingLadder and not self.entity.onRope:
             return fallingstate.FallingState(self.entity)
-    def __hasDiagonalUpLeft(self):
-        return self.__hasValidLeftInput() and self.__hasValidUpInput()
-    def __hasDiagonalUpRight(self):
-        return self.__hasValidRightInput() and self.__hasValidUpInput()
     def __hasValidDiagonalLeft(self):
         return self.__hasValidLeftInput() and (self.__hasValidDownInput() or self.__hasValidUpInput())
     def __hasValidDiagonalRight(self):

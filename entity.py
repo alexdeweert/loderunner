@@ -32,6 +32,7 @@ class Entity(pygame.sprite.Sprite):
         self.collisionsCalculated = 0
         self.quadTreeCollisisionCalculated = 0
         self.onFloor = False
+        self.onWall = False
         self.touchingLadder = False
         self.onRope = False
         self.delta = 0
@@ -119,14 +120,15 @@ class Entity(pygame.sprite.Sprite):
 
     def __handleMove(self, deltaH: float, deltaV: float, delta: float, isLadderMove: bool = False):
         willNotCollide = True
-        #collidables = self.__findSolidsInQuadTree(self.quadTree, [], set([]))
         self.onFloor = False
+        self.onWall = False
         self.touchingLadder = False
         for collidable in self.collidables:
             #self.collisionsCalculated = self.collisionsCalculated + 1
             if collidable.isSolid:
                 if collidable.willCollide(self.rect, deltaH, deltaV):
                     self.onFloor = collidable.isFloor
+                    self.onWall = not collidable.isFloor
                     if deltaH > 0: self.__resolveXGap(collidable, collidable.rect.left - self.rect.right, deltaV, 1)
                     if deltaH < 0: self.__resolveXGap(collidable, self.rect.left - collidable.rect.right, deltaV, -1)
                     if deltaV > 0: self.__resolveYGap(collidable, collidable.rect.top - self.rect.bottom, deltaH, 1)

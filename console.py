@@ -16,9 +16,10 @@ class Console():
             self.surface.blit(self.__renderCollisionsText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 16))
             self.surface.blit(self.__renderPlayerPositionText(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 32))
             self.surface.blit(self.__renderOnFloorState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 48))
-            self.surface.blit(self.__renderLadderState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 64))
-            self.surface.blit(self.__renderRopeState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 80))
-            self.surface.blit(self.__renderStates(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 96))
+            self.surface.blit(self.__renderOnWallState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 64))
+            self.surface.blit(self.__renderLadderState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 80))
+            self.surface.blit(self.__renderRopeState(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 96))
+            self.surface.blit(self.__renderStates(), (globals.FPS_DISP_X, globals.FPS_DISP_Y + 112))
 
     def __renderFpsText(self):
         fpsString = f"fps: {str(int(self.clock.get_fps()))}"
@@ -38,9 +39,13 @@ class Console():
         onFloorText = f"onFloor: {str(self.player.onFloor)}"
         return globals.DEBUG_FONT.render(onFloorText, True, globals.DEBUG_FONT_COLOR)
     
+    def __renderOnWallState(self):
+        onWallText = f"onWall: {str(self.player.onWall)}"
+        return globals.DEBUG_FONT.render(onWallText, True, globals.DEBUG_FONT_COLOR)
+    
     def __renderLadderState(self):
-        onFloorText = f"touchingLadder: {str(self.player.touchingLadder)}"
-        return globals.DEBUG_FONT.render(onFloorText, True, globals.DEBUG_FONT_COLOR)
+        onLadderText = f"touchingLadder: {str(self.player.touchingLadder)}"
+        return globals.DEBUG_FONT.render(onLadderText, True, globals.DEBUG_FONT_COLOR)
     
     def __renderRopeState(self):
         return self.__renderText("onRope", self.player.onRope)
