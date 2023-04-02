@@ -41,9 +41,9 @@ class Game():
         self.world.renderTileSet()
         self.player.draw()
         # Render grid (TODO: Move this to an editor class)
-        # for i in range(32, globals.SCREEN_W, 32):
-        #     pygame.draw.line(self.surface, colors.DARK_GRAY, (i,0), (i,globals.SCREEN_H))
-        #     pygame.draw.line(self.surface, colors.DARK_GRAY, (0,i), (globals.SCREEN_W,i))
+        for i in range(32, globals.SCREEN_W, 32):
+            pygame.draw.line(self.surface, colors.DARK_GRAY, (i,0), (i,globals.SCREEN_H))
+            pygame.draw.line(self.surface, colors.DARK_GRAY, (0,i), (globals.SCREEN_W,i))
         pygame.display.flip()
         
     def run(self):
@@ -53,7 +53,7 @@ class Game():
             if(delta > globals.MAX_DELTA):
                 delta = globals.MAX_DELTA
             self.processInput()
-            self.update(delta)
+            self.update(1)
             self.render()
 
 if __name__ == '__main__':

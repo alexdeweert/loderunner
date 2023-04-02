@@ -26,8 +26,8 @@ def init():
     DEBUG = True
     SCREEN_W = 1152
     SCREEN_H = 768
-    H_SPEED = 250
-    V_SPEED = 250
+    H_SPEED = 5
+    V_SPEED = 5
     SIMULATED_LAG_MS = 0
     FPS = 60
     MAX_DELTA = 1/FPS
@@ -35,14 +35,14 @@ def init():
     FPS_DISP_Y = 5
     DEBUG_FONT = pygame.font.SysFont("Arial", 12)
     DEBUG_FONT_COLOR = pygame.Color("Coral")
-    PLAYER_W = 30
-    PLAYER_H = 30
+    PLAYER_W = 28
+    PLAYER_H = 28
     SCREEN_CAPTION = "Loderunner"
     ZERO = 0
     ONE = 1
     SECOND_MS = 1000
     QUAD_TREE_DEPTH = 3
-    GRAVITY_SPEED = 200
+    GRAVITY_SPEED = 5
 
 class PressedKeys(IntEnum):
         LEFT = 0,

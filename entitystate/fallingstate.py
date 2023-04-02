@@ -17,7 +17,7 @@ class FallingState(ibasestate.IBaseState):
         print("FallingState exit")
 
     def update(self):
-        self.entity.handleGravity()
+        self.entity.handleGravity(isFalling = True)
         if self.entity.onFloor: return walkstate.WalkState(self.entity)
         if self.entity.touchingLadder:
             return climbstate.ClimbState(self.entity)

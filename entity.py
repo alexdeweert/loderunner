@@ -58,11 +58,11 @@ class Entity(pygame.sprite.Sprite):
         self.deltaV = delta * globals.V_SPEED
         self.gravity = delta * globals.GRAVITY_SPEED
         self.__storePreviousPosition()
+        self.collidables = self.__findSolidsInQuadTree(self.quadTree, [], set([]))
         newState = self.activeState.update()
         if newState is not None:
             self.changeState(newState)
         if globals.DEBUG and self.didMove(): self.__checkQuadTreeCollisionsForDraw(self.quadTree)
-        self.collidables = self.__findSolidsInQuadTree(self.quadTree, [], set([]))
         self.__setDidMove()
 
     def draw(self):
@@ -111,14 +111,14 @@ class Entity(pygame.sprite.Sprite):
         self.__handleMove(globals.ZERO, -self.deltaV, self.delta)
     def handleMoveDown(self):
         self.__handleMove(globals.ZERO, self.deltaV, self.delta)
-    def handleGravity(self):
-        self.__handleMove(globals.ZERO, self.gravity, self.delta)
+    def handleGravity(self, isFalling = False):
+        self.__handleMove(globals.ZERO, self.gravity, self.delta, isFalling = isFalling)
     def handleMoveUpLadder(self):
         self.__handleMove(globals.ZERO, -self.deltaV, self.delta, isLadderMove = True)
     def handleMoveDownLadder(self):
         self.__handleMove(globals.ZERO, self.deltaV, self.delta, isLadderMove = True)
 
-    def __handleMove(self, deltaH: float, deltaV: float, delta: float, isLadderMove: bool = False):
+    def __handleMove(self, deltaH: float, deltaV: float, delta: float, isLadderMove: bool = False, isFalling: bool = False):
         willNotCollide = True
         self.onFloor = False
         self.onWall = False
@@ -134,21 +134,39 @@ class Entity(pygame.sprite.Sprite):
                     if deltaV > 0: self.__resolveYGap(collidable, collidable.rect.top - self.rect.bottom, deltaH, 1)
                     if deltaV < 0: self.__resolveYGap(collidable, self.rect.top - collidable.rect.bottom, deltaH, -1)
                     willNotCollide = False
-            elif collidable.didCollide(self.rect):
-                if collidable.isLadder:
+            if collidable.isLadder:
+                if collidable.didCollide(self.rect):
                     self.touchingLadder = True
                     #Center entity on ladder if they're moving up or down
                     if isLadderMove:
-                        # diff = self.rect.x - collidable.rect.x
-                        # self.rect.move_ip(diff, globals.ZERO)
                         if self.rect.centerx != collidable.rect.centerx:
                             self.rect.centerx = collidable.rect.centerx
-                
+        
+
         if willNotCollide:
             if not isLadderMove:
-                self.rect.move_ip(deltaH, deltaV)
+                #If moved
+                if isFalling:
+                    print(f"didMove Left: {self.didMoveLeft()}")
+                    print(f"didMove Right: {self.didMoveRight()}")
+                    self.__resolveOvershotGridline()
+                    self.rect.move_ip(deltaH, deltaV)
+                else:
+                    self.rect.move_ip(deltaH, deltaV)
             else:
                 self.rect.move_ip(globals.ZERO, deltaV)
+
+    # Jumping off a ladder or edge we overshoot the left/right
+    # closest gridline. We want to snap back to that overshot line.
+    def __resolveOvershotGridline(self):
+        if(self.didMoveLeft() and self.rect.left % 32 != 0):
+            print("~~ THIS")
+            self.rect.left = (((self.rect.left // 32)+1) * 32)
+            self.prevX = self.rect.x
+
+        if(self.didMoveRight() and self.rect.right % 32 != 0):
+            self.rect.right = (((self.rect.right // 32)) * 32) - 1
+            self.prevX = self.rect.x
 
     def __resolveXGap(self, withCollidable: collidable.Collidable, distance: float, deltaV: float, dir: int):
         # Resolve gap down to one pixel

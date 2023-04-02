@@ -2,6 +2,7 @@ import pygame
 import interfaces.ibasestate as ibasestate
 import constants.globals as globals
 import entitystate.fallingstate as fallingstate
+import entitystate.walkstate as walkstate
 from typing import List
 
 class ClimbState(ibasestate.IBaseState):
@@ -17,7 +18,6 @@ class ClimbState(ibasestate.IBaseState):
         print("ClimbState exit")
 
     def update(self):
-
         #In the case when they're touching floor (TODO: should be a wall solid collidable if we want slide behavior)
         #AND there's a diagonal movement, do up or down instead of horizontal
         #Prioritize resolving diagonal input as horizontal
@@ -31,9 +31,13 @@ class ClimbState(ibasestate.IBaseState):
             if self.__hasValidDownInput(): self.entity.handleMoveDownLadder()
             if self.__hasValidLeftInput(): self.entity.handleMoveLeft()
             if self.__hasValidRightInput(): self.entity.handleMoveRight()
-
+        
+        # if self.__hasValidLeftInput(): return walkstate.WalkState(self.entity)
+        # if self.__hasValidRightInput(): return walkstate.WalkState(self.entity)
         if not self.entity.onFloor and not self.entity.touchingLadder and not self.entity.onRope:
             return fallingstate.FallingState(self.entity)
+        
+
     def __hasValidDiagonalLeft(self):
         return self.__hasValidLeftInput() and (self.__hasValidDownInput() or self.__hasValidUpInput())
     def __hasValidDiagonalRight(self):
