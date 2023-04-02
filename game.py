@@ -30,6 +30,9 @@ class Game():
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 self.world.insertFloorPieceIntoWorld(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
                 print(f"mouse: {pygame.mouse.get_pos()}")
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+                self.world.insertWallPieceIntoWorld(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
+                print(f"mouse: {pygame.mouse.get_pos()}")
     # Update game logic based on inputs
     def update(self, delta):
         self.player.update(delta)

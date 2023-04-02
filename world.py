@@ -26,6 +26,13 @@ class World():
         self.solidCollidableTileSet.append(newTileSubFloor)
         self.insertCollidableIntoQuadTree(newTileSubFloor, self.rootQuadTreeNode)
 
+    def insertWallPieceIntoWorld(self, x: int, y: int):
+        insertX = (x // 32) * 32
+        insertY = (y // 32) * 32
+        newTileFloor = collidable.Collidable(insertX,insertY,32,32, True, colors.DARK_GRAY, colors.GRAY)
+        self.solidCollidableTileSet.append(newTileFloor)
+        self.insertCollidableIntoQuadTree(newTileFloor, self.rootQuadTreeNode)
+
     def getQuadTree(self):
         return self.rootQuadTreeNode
 
