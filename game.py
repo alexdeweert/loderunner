@@ -53,7 +53,7 @@ class Game():
             if(delta > globals.MAX_DELTA):
                 delta = globals.MAX_DELTA
             self.processInput()
-            self.update(1)
+            self.update(delta)
             self.render()
 
 if __name__ == '__main__':

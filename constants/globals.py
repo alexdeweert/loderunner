@@ -26,8 +26,8 @@ def init():
     DEBUG = True
     SCREEN_W = 1152
     SCREEN_H = 768
-    H_SPEED = 5
-    V_SPEED = 5
+    H_SPEED = 250
+    V_SPEED = 250
     SIMULATED_LAG_MS = 0
     FPS = 60
     MAX_DELTA = 1/FPS
@@ -42,7 +42,7 @@ def init():
     ONE = 1
     SECOND_MS = 1000
     QUAD_TREE_DEPTH = 3
-    GRAVITY_SPEED = 5
+    GRAVITY_SPEED = 250
 
 class PressedKeys(IntEnum):
         LEFT = 0,
